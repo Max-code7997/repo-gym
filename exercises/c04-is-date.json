@@ -11,51 +11,63 @@
   "tests": [
     {
       "name": "默认格式下连字符分隔（非严格）",
-      "expr": "isDate('2020-02-19') === true"
+      "expr": "isDate('2020-02-19') === true",
+      "name_en": "Hyphen delimiter under default format (non-strict)"
     },
     {
       "name": "闰年 2 月 29 日",
-      "expr": "isDate('2020/02/29') === true"
+      "expr": "isDate('2020/02/29') === true",
+      "name_en": "Leap-year 29 February"
     },
     {
       "name": "非闰年 2 月 29 日",
-      "expr": "isDate('2019-02-29') === false"
+      "expr": "isDate('2019-02-29') === false",
+      "name_en": "29 February in a non-leap year"
     },
     {
       "name": "4 月 31 日不存在",
-      "expr": "isDate('2020-04-31') === false"
+      "expr": "isDate('2020-04-31') === false",
+      "name_en": "31 April does not exist"
     },
     {
       "name": "混合分隔符拒绝",
-      "expr": "isDate('2020/03-15') === false"
+      "expr": "isDate('2020/03-15') === false",
+      "name_en": "Mixed delimiters rejected"
     },
     {
       "name": "缺少日字段",
-      "expr": "isDate('2024-05') === false"
+      "expr": "isDate('2024-05') === false",
+      "name_en": "Missing day field"
     },
     {
       "name": "严格模式长度不符",
-      "expr": "isDate('2021/1/31', { format: 'YYYY/MM/DD', strictMode: true }) === false"
+      "expr": "isDate('2021/1/31', { format: 'YYYY/MM/DD', strictMode: true }) === false",
+      "name_en": "Strict-mode length mismatch"
     },
     {
       "name": "旧式字符串 format 兼容",
-      "expr": "isDate('15-07-2002', 'DD/MM/YYYY') === true"
+      "expr": "isDate('15-07-2002', 'DD/MM/YYYY') === true",
+      "name_en": "Legacy string format compatibility"
     },
     {
       "name": "严格模式拒绝不同分隔符",
-      "expr": "isDate('2021-01-31', { format: 'YYYY/MM/DD', strictMode: true }) === false"
+      "expr": "isDate('2021-01-31', { format: 'YYYY/MM/DD', strictMode: true }) === false",
+      "name_en": "Strict mode rejects a different delimiter"
     },
     {
       "name": "2 位年份映射到 19xx",
-      "expr": "isDate('99/01/01', 'YY/MM/DD') === true"
+      "expr": "isDate('99/01/01', 'YY/MM/DD') === true",
+      "name_en": "Two-digit year maps to 19xx"
     },
     {
       "name": "2 位年份映射世纪后闰年成立",
-      "expr": "isDate('00/02/29', 'YY/MM/DD') === true"
+      "expr": "isDate('00/02/29', 'YY/MM/DD') === true",
+      "name_en": "Two-digit year mapping: leap year holds"
     },
     {
       "name": "2 位年份映射世纪后非闰年拒绝",
-      "expr": "isDate('99/02/29', 'YY/MM/DD') === false"
+      "expr": "isDate('99/02/29', 'YY/MM/DD') === false",
+      "name_en": "Two-digit year mapping: non-leap year rejected"
     }
   ],
   "hints": [
@@ -63,5 +75,13 @@
     "检查 dateDelimiter 的取值来源：只有 strictMode 为 true 时才应固定使用格式分隔符。",
     "修复后回归确认：混合分隔符（'2020/03-15'）仍被拒绝，严格模式与位数一致性检查不受影响。"
   ],
-  "explanation": "参考实现中 formatDelimiter 在格式串中查找分隔符，dateDelimiter 在非严格模式下按输入中实际出现的分隔符查找（strictMode 为 true 时才固定用格式分隔符），二者分别用于切分输入与格式。本缺陷把 dateDelimiter 直接固定成了 formatDelimiter，导致输入使用连字符（默认允许）时整段被当作一个字段与格式逐位比较而失败。常见坑：把两次分隔符查找合并；顺手改动 zip 或位数检查导致 '2021/1/31' 对 DD 的行为变化；忽略 2 月校验依赖 getUTCDate 回读（Date 构造会把 2019-02-29 自动溢出为 3 月 1 日）。"
+  "explanation": "参考实现中 formatDelimiter 在格式串中查找分隔符，dateDelimiter 在非严格模式下按输入中实际出现的分隔符查找（strictMode 为 true 时才固定用格式分隔符），二者分别用于切分输入与格式。本缺陷把 dateDelimiter 直接固定成了 formatDelimiter，导致输入使用连字符（默认允许）时整段被当作一个字段与格式逐位比较而失败。常见坑：把两次分隔符查找合并；顺手改动 zip 或位数检查导致 '2021/1/31' 对 DD 的行为变化；忽略 2 月校验依赖 getUTCDate 回读（Date 构造会把 2019-02-29 自动溢出为 3 月 1 日）。",
+  "title_en": "Fix isDate rejecting valid dates under default options",
+  "description_en": "Context: isDate parses a date string by format and checks that the date really exists. The default format is YYYY/MM/DD and the default delimiter set is ['/', '-']. In non-strict mode the input may use any delimiter from the set (it may differ from the format's delimiter); strict mode (strictMode: true) forces the input to match the format's length and delimiter. Each field's width must match its placeholder (DD means a two-digit day). February dates are verified by constructing a UTC date and reading the day back, which also enforces leap years. Non-string inputs fall back to the Date-object branch. The legacy isDate(input, 'format') call is supported. User report: valid hyphenated dates such as isDate('2020-02-19') and isDate('15-07-2002', 'DD/MM/YYYY') are wrongly rejected (return false). Task: locate and minimally fix the defect without changing the other documented behaviour. Acceptance: all tests pass, the fix touches only the root cause, and no dependencies are added.",
+  "hints_en": [
+    "Reproduce first, then locate: isDate('2020-02-19') is false. Note that the format delimiter and the input delimiter are two separate lookups in non-strict mode.",
+    "Check where dateDelimiter comes from: it should be pinned to the format delimiter only when strictMode is true.",
+    "After the fix, confirm the regression cases: mixed delimiters ('2020/03-15') are still rejected, and the strict-mode and width checks are unaffected."
+  ],
+  "explanation_en": "In the reference, formatDelimiter looks up a delimiter in the format string; dateDelimiter looks up the delimiter actually present in the input when strictMode is false (it is pinned to the format delimiter only in strict mode). The two are used to split the input and the format respectively. The defect pins dateDelimiter to formatDelimiter, so a hyphenated input (allowed by default) is compared as one field against the format and fails. Common traps: merging the two delimiter lookups; touching zip or the width check so '2021/1/31' behaves differently against DD; forgetting that February validation depends on the getUTCDate read-back (constructing a Date rolls 2019-02-29 into March 1)."
 }

@@ -9,19 +9,59 @@
   "starter_code": "// isMongoId —— 校验 MongoDB ObjectId（fillin 起点）\n// 仓库来源：src/lib/isMongoId.js、src/lib/isHexadecimal.js（validator.js 13.15.35）\n// 契约：合法 ObjectId 是长度恰为 24 的十六进制串（大小写均可）。\n\nfunction assertString(input) {\n  if (input === undefined || input === null) throw new TypeError(`Expected a string but received a ${input}`);\n  if (input.constructor.name !== 'String') throw new TypeError(`Expected a string but received a ${input.constructor.name}`);\n}\n\nconst hexadecimal = /^(0x|0h)?[0-9A-F]+$/i;\n\n// 内联自 src/lib/isHexadecimal.js\nfunction isHexadecimal(str) {\n  assertString(str);\n  return hexadecimal.test(str);\n}\n\nfunction isMongoId(str) {\n  assertString(str);\n\n  // TODO: 补全核心判断——字符串是十六进制（复用 isHexadecimal），且长度恰为 24\n}\n",
   "reference_solution": "// isMongoId —— 校验 MongoDB ObjectId（参考实现，与仓库 src/lib/isMongoId.js 一致）\n\nfunction assertString(input) {\n  if (input === undefined || input === null) throw new TypeError(`Expected a string but received a ${input}`);\n  if (input.constructor.name !== 'String') throw new TypeError(`Expected a string but received a ${input.constructor.name}`);\n}\n\nconst hexadecimal = /^(0x|0h)?[0-9A-F]+$/i;\n\n// 内联自 src/lib/isHexadecimal.js\nfunction isHexadecimal(str) {\n  assertString(str);\n  return hexadecimal.test(str);\n}\n\nfunction isMongoId(str) {\n  assertString(str);\n  return isHexadecimal(str) && str.length === 24;\n}\n",
   "tests": [
-    { "name": "合法 24 位十六进制", "expr": "isMongoId('507f1f77bcf86cd799439011') === true" },
-    { "name": "全大写十六进制", "expr": "isMongoId('507F1F77BCF86CD799439011') === true" },
-    { "name": "大小写混合", "expr": "isMongoId('507f1F77BCf86cd799439011') === true" },
-    { "name": "23 位被拒", "expr": "isMongoId('507f1f77bcf86cd79943901') === false" },
-    { "name": "25 位被拒", "expr": "isMongoId('507f1f77bcf86cd7994390111') === false" },
-    { "name": "24 位但含非十六进制字符 g", "expr": "isMongoId('507f1f77bcf86cd79943901g') === false" },
-    { "name": "空串被拒", "expr": "isMongoId('') === false" },
-    { "name": "带连字符的分段串被拒", "expr": "isMongoId('507f1f77-bcf8-6cd7-9943-9011') === false" }
+    {
+      "name": "合法 24 位十六进制",
+      "expr": "isMongoId('507f1f77bcf86cd799439011') === true",
+      "name_en": "Valid 24-character hex"
+    },
+    {
+      "name": "全大写十六进制",
+      "expr": "isMongoId('507F1F77BCF86CD799439011') === true",
+      "name_en": "All-uppercase hex"
+    },
+    {
+      "name": "大小写混合",
+      "expr": "isMongoId('507f1F77BCf86cd799439011') === true",
+      "name_en": "Mixed case"
+    },
+    {
+      "name": "23 位被拒",
+      "expr": "isMongoId('507f1f77bcf86cd79943901') === false",
+      "name_en": "23 characters rejected"
+    },
+    {
+      "name": "25 位被拒",
+      "expr": "isMongoId('507f1f77bcf86cd7994390111') === false",
+      "name_en": "25 characters rejected"
+    },
+    {
+      "name": "24 位但含非十六进制字符 g",
+      "expr": "isMongoId('507f1f77bcf86cd79943901g') === false",
+      "name_en": "24 characters containing non-hex g"
+    },
+    {
+      "name": "空串被拒",
+      "expr": "isMongoId('') === false",
+      "name_en": "Empty string rejected"
+    },
+    {
+      "name": "带连字符的分段串被拒",
+      "expr": "isMongoId('507f1f77-bcf8-6cd7-9943-9011') === false",
+      "name_en": "Hyphenated string rejected"
+    }
   ],
   "hints": [
     "核心判断就一行：isHexadecimal(str) && str.length === 24，先字符集后长度。",
     "大小写由 isHexadecimal 正则的 /i 标志处理，不需要额外 toLowerCase。",
     "空串、含 g、带连字符都倒在十六进制这关；23 位与 25 位倒在长度这关——两类检查缺一不可。"
   ],
-  "explanation": "参考实现与仓库一致：return isHexadecimal(str) && str.length === 24。isHexadecimal 的正则 /^(0x|0h)?[0-9A-F]+$/i 天然支持大小写并放行 0x/0h 前缀，长度约束由 isMongoId 把关（'0x' 加 22 位十六进制恰好 24 位也会被接受，这是仓库现状）。常见坑：只查长度不查字符集（'507f1f77bcf86cd79943901g' 长度对但含 g）；只查字符集不查长度；用 parseInt(str, 16) 判断会放行前缀合法、尾部掺假的串——parseInt 停在第一个非法字符处并不返回 NaN。"
+  "explanation": "参考实现与仓库一致：return isHexadecimal(str) && str.length === 24。isHexadecimal 的正则 /^(0x|0h)?[0-9A-F]+$/i 天然支持大小写并放行 0x/0h 前缀，长度约束由 isMongoId 把关（'0x' 加 22 位十六进制恰好 24 位也会被接受，这是仓库现状）。常见坑：只查长度不查字符集（'507f1f77bcf86cd79943901g' 长度对但含 g）；只查字符集不查长度；用 parseInt(str, 16) 判断会放行前缀合法、尾部掺假的串——parseInt 停在第一个非法字符处并不返回 NaN。",
+  "title_en": "Complete the core check in isMongoId",
+  "description_en": "Context: isMongoId checks whether a string is a valid MongoDB ObjectId: exactly 24 hexadecimal characters (either case). It reuses isHexadecimal (whose regex allows an 0x/0h prefix; the length constraint is enforced by isMongoId). Non-string input throws TypeError. Task: complete the core check — validate hexadecimal first (using the inlined isHexadecimal), then length 24; keep the signature. Acceptance: all tests pass; only fill in the missing implementation, without dependencies or changes to other code.",
+  "hints_en": [
+    "The core check is one line: isHexadecimal(str) && str.length === 24 — character set first, then length.",
+    "Case is handled by the /i flag in isHexadecimal's regex; no extra toLowerCase is needed.",
+    "The empty string, a string with g, and hyphenated strings fail the hex check; 23- and 25-character strings fail the length check — both checks are required."
+  ],
+  "explanation_en": "The reference matches the repo: return isHexadecimal(str) && str.length === 24. isHexadecimal's regex /^(0x|0h)?[0-9A-F]+$/i is case-insensitive and allows the 0x/0h prefix; isMongoId enforces the length (so '0x' plus 22 hex characters, exactly 24 characters, is accepted — that is the repo's current behaviour). Common traps: checking length without the character set ('507f1f77bcf86cd79943901g' has the right length but contains g); checking the set without length; using parseInt(str, 16), which stops at the first invalid character and does not return NaN."
 }

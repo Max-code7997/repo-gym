@@ -11,51 +11,63 @@
   "tests": [
     {
       "name": "完整合法表单通过",
-      "expr": "validateSignup({ name: 'Ada Lovelace', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2010-12-10' }).ok === true"
+      "expr": "validateSignup({ name: 'Ada Lovelace', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2010-12-10' }).ok === true",
+      "name_en": "Fully valid form passes"
     },
     {
       "name": "姓名过短被拒",
-      "expr": "validateSignup({ name: 'A', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2010-12-10' }).errors.name === 'name_invalid'"
+      "expr": "validateSignup({ name: 'A', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2010-12-10' }).errors.name === 'name_invalid'",
+      "name_en": "Too-short name rejected"
     },
     {
       "name": "邮箱缺少点号被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada.example.com', password: 'Str0ng!pass', birthdate: '2010-12-10' }).errors.email === 'email_invalid'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada.example.com', password: 'Str0ng!pass', birthdate: '2010-12-10' }).errors.email === 'email_invalid'",
+      "name_en": "Email missing the dot rejected"
     },
     {
       "name": "口令缺大写/数字/符号被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'weakpass', birthdate: '2010-12-10' }).errors.password === 'password_weak'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'weakpass', birthdate: '2010-12-10' }).errors.password === 'password_weak'",
+      "name_en": "Password missing uppercase/digit/symbol rejected"
     },
     {
       "name": "口令全大写被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'STR0NG!PASS', birthdate: '2010-12-10' }).errors.password === 'password_weak'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'STR0NG!PASS', birthdate: '2010-12-10' }).errors.password === 'password_weak'",
+      "name_en": "All-uppercase password rejected"
     },
     {
       "name": "不存在的日期被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2010-02-30' }).errors.birthdate === 'birthdate_invalid'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2010-02-30' }).errors.birthdate === 'birthdate_invalid'",
+      "name_en": "Non-existent date rejected"
     },
     {
       "name": "差一天满 13 岁被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2013-11-11' }).errors.birthdate === 'birthdate_too_young'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2013-11-11' }).errors.birthdate === 'birthdate_too_young'",
+      "name_en": "One day short of 13 rejected"
     },
     {
       "name": "未来日期被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2027-01-01' }).errors.birthdate === 'birthdate_future'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2027-01-01' }).errors.birthdate === 'birthdate_future'",
+      "name_en": "Future date rejected"
     },
     {
       "name": "刚满 13 岁通过（边界）",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2013-11-10' }).ok === true"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'Str0ng!pass', birthdate: '2013-11-10' }).ok === true",
+      "name_en": "Exactly 13 passes (boundary)"
     },
     {
       "name": "空对象四个字段全部报错",
-      "expr": "validateSignup({}).ok === false && Object.keys(validateSignup({}).errors).length === 4"
+      "expr": "validateSignup({}).ok === false && Object.keys(validateSignup({}).errors).length === 4",
+      "name_en": "Empty object reports all four fields"
     },
     {
       "name": "邮箱缺少后缀点号被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example', password: 'Str0ng!pass', birthdate: '2010-12-10' }).errors.email === 'email_invalid'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example', password: 'Str0ng!pass', birthdate: '2010-12-10' }).errors.email === 'email_invalid'",
+      "name_en": "Email missing the suffix dot rejected"
     },
     {
       "name": "口令全小写被拒",
-      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'str0ng!pass', birthdate: '2010-12-10' }).errors.password === 'password_weak'"
+      "expr": "validateSignup({ name: 'Ada', email: 'ada@example.com', password: 'str0ng!pass', birthdate: '2010-12-10' }).errors.password === 'password_weak'",
+      "name_en": "All-lowercase password rejected"
     }
   ],
   "hints": [
@@ -63,5 +75,13 @@
     "把四个字段的校验写成分段 if，错误码只在失败时写入 errors；最后用 Object.keys(errors).length === 0 计算 ok。",
     "年龄边界用 Date.UTC 比较时间戳：生日时间戳大于 2013-11-10 就未满 13 岁，等于则刚好通过。"
   ],
-  "explanation": "这题的关键不是把四个规则堆在一起，而是让错误码稳定、边界可验证。日期用 UTC 回读法处理 2 月 30 日、闰年等滚动问题；年龄用固定基准日 2026-11-10 比较时间戳，避免运行环境时区影响。"
+  "explanation": "这题的关键不是把四个规则堆在一起，而是让错误码稳定、边界可验证。日期用 UTC 回读法处理 2 月 30 日、闰年等滚动问题；年龄用固定基准日 2026-11-10 比较时间戳，避免运行环境时区影响。",
+  "title_en": "Capstone: registration form validator",
+  "description_en": "Combine the first four chapters into one real feature: implement validateSignup(payload) returning { ok, errors }. payload has name / email / password / birthdate; errors contains only the invalid fields, each value a stable error code.\n\nRules:\n1) name: 2-40 characters after trimming, otherwise name_invalid.\n2) email: a simple email shape (local@domain.suffix), otherwise email_invalid.\n3) password: at least 8 characters with at least one lowercase, uppercase, digit and symbol from !@#$%^&*, otherwise password_weak.\n4) birthdate: a real YYYY-MM-DD date (2020-02-30 is invalid), not after 2026-11-10, and at least 13 years old relative to 2026-11-10 (birthday on or before 2013-11-10). Error codes in order: birthdate_invalid / birthdate_future / birthdate_too_young.\n\nAcceptance: all 12 test expressions pass; both ok and errors must be correct.",
+  "hints_en": [
+    "Write isValidDateString first: construct the date with Date.UTC, then read year/month/day back to confirm it did not roll over.",
+    "Write the four field checks as separate if blocks; write an error code only when a check fails; compute ok with Object.keys(errors).length === 0.",
+    "Use Date.UTC timestamps for the age boundary: a birthday after 2013-11-10 means under 13; equality passes."
+  ],
+  "explanation_en": "The point is not to pile four rules together but to keep error codes stable and boundaries testable. Dates use the UTC read-back trick for 30 February and leap years; age compares timestamps against the fixed reference date 2026-11-10, so the runtime time zone does not matter."
 }

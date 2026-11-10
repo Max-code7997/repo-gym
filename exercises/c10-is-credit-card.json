@@ -9,19 +9,59 @@
   "starter_code": "// isCreditCard —— 校验银行卡号（feature 起点：现状实现，机构表尚无 Mir）\n// 仓库来源：src/lib/isCreditCard.js、src/lib/isLuhnNumber.js（validator.js 13.15.35）\n// 契约：options.provider 指定机构（不区分大小写）；机构命中后先过机构正则再过 Luhn；\n//      未知 provider 抛 Error；不传 provider 时须命中机构表全量正则之一（allCards）再过 Luhn；\n//      连字符与空格先清洗。\n\nfunction assertString(input) {\n  if (input === undefined || input === null) throw new TypeError(`Expected a string but received a ${input}`);\n  if (input.constructor.name !== 'String') throw new TypeError(`Expected a string but received a ${input.constructor.name}`);\n}\n\n// 内联自 src/lib/isLuhnNumber.js\nfunction isLuhnNumber(str) {\n  assertString(str);\n  const sanitized = str.replace(/[- ]+/g, '');\n  let sum = 0;\n  let digit;\n  let tmpNum;\n  let shouldDouble;\n  for (let i = sanitized.length - 1; i >= 0; i--) {\n    digit = sanitized.substring(i, (i + 1));\n    tmpNum = parseInt(digit, 10);\n    if (shouldDouble) {\n      tmpNum *= 2;\n      if (tmpNum >= 10) {\n        sum += ((tmpNum % 10) + 1);\n      } else {\n        sum += tmpNum;\n      }\n    } else {\n      sum += tmpNum;\n    }\n    shouldDouble = !shouldDouble;\n  }\n  return !!((sum % 10) === 0 ? sanitized : false);\n}\n\nconst cards = {\n  amex: /^3[47][0-9]{13}$/,\n  dinersclub: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,\n  discover: /^6(?:011|5[0-9][0-9])[0-9]{12,15}$/,\n  jcb: /^(?:2131|1800|35\\d{3})\\d{11}$/,\n  mastercard: /^5[1-5][0-9]{2}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}$/,\n  unionpay: /^(6[27][0-9]{14}|^(81[0-9]{14,17}))$/,\n  visa: /^(?:4[0-9]{12})(?:[0-9]{3,6})?$/,\n};\n\nconst allCards = (() => {\n  const tmpCardsArray = [];\n  for (const cardProvider in cards) {\n    // istanbul ignore else\n    if (cards.hasOwnProperty(cardProvider)) {\n      tmpCardsArray.push(cards[cardProvider]);\n    }\n  }\n  return tmpCardsArray;\n})();\n\nfunction isCreditCard(card, options = {}) {\n  assertString(card);\n  const { provider } = options;\n  const sanitized = card.replace(/[- ]+/g, '');\n  if (provider && provider.toLowerCase() in cards) {\n    // specific provider in the list\n    if (!(cards[provider.toLowerCase()].test(sanitized))) {\n      return false;\n    }\n  } else if (provider && !(provider.toLowerCase() in cards)) {\n    /* specific provider not in the list */\n    throw new Error(`${provider} is not a valid credit card provider.`);\n  } else if (!allCards.some(cardProvider => cardProvider.test(sanitized))) {\n    // no specific provider\n    return false;\n  }\n  return isLuhnNumber(card);\n}\n",
   "reference_solution": "// isCreditCard —— 校验银行卡号（参考实现：现状 + mir 发卡机构）\n\nfunction assertString(input) {\n  if (input === undefined || input === null) throw new TypeError(`Expected a string but received a ${input}`);\n  if (input.constructor.name !== 'String') throw new TypeError(`Expected a string but received a ${input.constructor.name}`);\n}\n\n// 内联自 src/lib/isLuhnNumber.js\nfunction isLuhnNumber(str) {\n  assertString(str);\n  const sanitized = str.replace(/[- ]+/g, '');\n  let sum = 0;\n  let digit;\n  let tmpNum;\n  let shouldDouble;\n  for (let i = sanitized.length - 1; i >= 0; i--) {\n    digit = sanitized.substring(i, (i + 1));\n    tmpNum = parseInt(digit, 10);\n    if (shouldDouble) {\n      tmpNum *= 2;\n      if (tmpNum >= 10) {\n        sum += ((tmpNum % 10) + 1);\n      } else {\n        sum += tmpNum;\n      }\n    } else {\n      sum += tmpNum;\n    }\n    shouldDouble = !shouldDouble;\n  }\n  return !!((sum % 10) === 0 ? sanitized : false);\n}\n\nconst cards = {\n  amex: /^3[47][0-9]{13}$/,\n  dinersclub: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,\n  discover: /^6(?:011|5[0-9][0-9])[0-9]{12,15}$/,\n  jcb: /^(?:2131|1800|35\\d{3})\\d{11}$/,\n  mastercard: /^5[1-5][0-9]{2}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}$/,\n  mir: /^220[0-4][0-9]{12}$/,\n  unionpay: /^(6[27][0-9]{14}|^(81[0-9]{14,17}))$/,\n  visa: /^(?:4[0-9]{12})(?:[0-9]{3,6})?$/,\n};\n\nconst allCards = (() => {\n  const tmpCardsArray = [];\n  for (const cardProvider in cards) {\n    // istanbul ignore else\n    if (cards.hasOwnProperty(cardProvider)) {\n      tmpCardsArray.push(cards[cardProvider]);\n    }\n  }\n  return tmpCardsArray;\n})();\n\nfunction isCreditCard(card, options = {}) {\n  assertString(card);\n  const { provider } = options;\n  const sanitized = card.replace(/[- ]+/g, '');\n  if (provider && provider.toLowerCase() in cards) {\n    // specific provider in the list\n    if (!(cards[provider.toLowerCase()].test(sanitized))) {\n      return false;\n    }\n  } else if (provider && !(provider.toLowerCase() in cards)) {\n    /* specific provider not in the list */\n    throw new Error(`${provider} is not a valid credit card provider.`);\n  } else if (!allCards.some(cardProvider => cardProvider.test(sanitized))) {\n    // no specific provider\n    return false;\n  }\n  return isLuhnNumber(card);\n}\n",
   "tests": [
-    { "name": "默认路径接受 Mir 号（2200 段）", "expr": "isCreditCard('2200000000000004') === true" },
-    { "name": "provider 'mir' 接受 Mir 号（2204 段）", "expr": "isCreditCard('2204123456789015', { provider: 'mir' }) === true" },
-    { "name": "provider 'mir' 接受 Mir 号（2200 段）", "expr": "isCreditCard('2200000000000004', { provider: 'mir' }) === true" },
-    { "name": "BIN 越界（2205 开头且 Luhn 合法）被拒", "expr": "isCreditCard('2205123456789014') === false" },
-    { "name": "校验位错误（Luhn 不过）被拒", "expr": "isCreditCard('2200000000000005') === false" },
-    { "name": "provider 'mir' 拒绝非 Mir 号", "expr": "isCreditCard('4111111111111111', { provider: 'mir' }) === false" },
-    { "name": "现有机构不变：Visa 默认与指定 provider 均通过", "expr": "isCreditCard('4111111111111111') === true && isCreditCard('4111111111111111', { provider: 'visa' }) === true" },
-    { "name": "现有机构不变：校验位错误与机构不符被拒", "expr": "isCreditCard('4111111111111112', { provider: 'visa' }) === false && isCreditCard('2200000000000004', { provider: 'visa' }) === false" }
+    {
+      "name": "默认路径接受 Mir 号（2200 段）",
+      "expr": "isCreditCard('2200000000000004') === true",
+      "name_en": "Default path accepts a Mir number (2200 range)"
+    },
+    {
+      "name": "provider 'mir' 接受 Mir 号（2204 段）",
+      "expr": "isCreditCard('2204123456789015', { provider: 'mir' }) === true",
+      "name_en": "provider 'mir' accepts a Mir number (2204 range)"
+    },
+    {
+      "name": "provider 'mir' 接受 Mir 号（2200 段）",
+      "expr": "isCreditCard('2200000000000004', { provider: 'mir' }) === true",
+      "name_en": "provider 'mir' accepts a Mir number (2200 range)"
+    },
+    {
+      "name": "BIN 越界（2205 开头且 Luhn 合法）被拒",
+      "expr": "isCreditCard('2205123456789014') === false",
+      "name_en": "Out-of-range BIN (2205, Luhn-valid) rejected"
+    },
+    {
+      "name": "校验位错误（Luhn 不过）被拒",
+      "expr": "isCreditCard('2200000000000005') === false",
+      "name_en": "Wrong check digit (Luhn failure) rejected"
+    },
+    {
+      "name": "provider 'mir' 拒绝非 Mir 号",
+      "expr": "isCreditCard('4111111111111111', { provider: 'mir' }) === false",
+      "name_en": "provider 'mir' rejects a non-Mir number"
+    },
+    {
+      "name": "现有机构不变：Visa 默认与指定 provider 均通过",
+      "expr": "isCreditCard('4111111111111111') === true && isCreditCard('4111111111111111', { provider: 'visa' }) === true",
+      "name_en": "Existing issuers unchanged: Visa passes by default and by provider"
+    },
+    {
+      "name": "现有机构不变：校验位错误与机构不符被拒",
+      "expr": "isCreditCard('4111111111111112', { provider: 'visa' }) === false && isCreditCard('2200000000000004', { provider: 'visa' }) === false",
+      "name_en": "Existing issuers unchanged: wrong check digit and issuer mismatch rejected"
+    }
   ],
   "hints": [
     "机构表 cards 是唯一注册点：默认路径用的 allCards 就是从 cards 的值构建的，在表里加一行 mir 就同时覆盖 provider 与默认两条路径。",
     "Mir 的 BIN 段是 2200–2204，正则 /^220[0-4][0-9]{12}$/，共 4 + 12 = 16 位；'2205123456789014' 虽然 Luhn 合法，但 BIN 越界应被拒。",
     "改动最小化：不要动 Luhn 实现、provider 分支与未知 provider 抛错逻辑，现有机构行为必须原样。"
   ],
-  "explanation": "参考实现只在 cards 表中新增一行 mir: /^220[0-4][0-9]{12}$/。默认路径的 allCards 数组在加载时由 cards 构建，自动包含 mir，因此 '2200000000000004' 不带 provider 也能通过；provider 路径经 provider.toLowerCase() in cards 命中 mir，先过机构正则、再过 isLuhnNumber。'2205123456789014' Luhn 合法但 2205 不在 220[0-4] 内，被机构正则拒绝——这保证实现不能退化成只查 Luhn。常见坑：只改默认分支而忘了机构表（provider: 'mir' 会落入未知 provider 抛错分支）；正则位数少写一位（{11}）；顺手\"修复\"mastercard 的正则或重构 provider 分支导致现有行为漂移。"
+  "explanation": "参考实现只在 cards 表中新增一行 mir: /^220[0-4][0-9]{12}$/。默认路径的 allCards 数组在加载时由 cards 构建，自动包含 mir，因此 '2200000000000004' 不带 provider 也能通过；provider 路径经 provider.toLowerCase() in cards 命中 mir，先过机构正则、再过 isLuhnNumber。'2205123456789014' Luhn 合法但 2205 不在 220[0-4] 内，被机构正则拒绝——这保证实现不能退化成只查 Luhn。常见坑：只改默认分支而忘了机构表（provider: 'mir' 会落入未知 provider 抛错分支）；正则位数少写一位（{11}）；顺手\"修复\"mastercard 的正则或重构 provider 分支导致现有行为漂移。",
+  "title_en": "Add the Mir issuer to isCreditCard",
+  "description_en": "Context: isCreditCard validates card numbers with a per-issuer regex plus Luhn. options.provider selects an issuer (case-insensitive); after a hit in the cards table the number must pass that issuer's regex and then Luhn. An unknown provider throws Error. Without a provider the number must match one of allCards (built automatically from cards) and then pass Luhn. Hyphens and spaces are stripped first. Task: add the Mir issuer (BIN range 2200-2204, 16 digits) with regex /^220[0-4][0-9]{12}$/. The default path (no provider) must also accept Mir numbers; existing issuers and the unknown-provider throw must be unchanged. Acceptance: all tests pass, including the two Luhn-valid Mir numbers '2200000000000004' and '2204123456789015'.",
+  "hints_en": [
+    "The cards table is the single registration point: the default path uses allCards, built from the values of cards, so one mir entry covers both the provider and default paths.",
+    "Mir BINs are 2200-2204; the regex is /^220[0-4][0-9]{12}$/, 4 + 12 = 16 digits. '2205123456789014' is Luhn-valid but its BIN is out of range and must be rejected.",
+    "Keep the change minimal: do not touch the Luhn implementation, the provider branch or the unknown-provider throw; existing issuer behaviour must stay identical."
+  ],
+  "explanation_en": "The reference adds one line, mir: /^220[0-4][0-9]{12}$/, to the cards table. allCards is built from cards at load time, so '2200000000000004' passes without a provider; with provider: 'mir' the provider.toLowerCase() in cards check hits mir, then the issuer regex and isLuhnNumber run. '2205123456789014' is Luhn-valid but 2205 is outside 220[0-4], so the issuer regex rejects it — proof that the implementation cannot degrade into a Luhn-only check. Common traps: changing only the default branch and forgetting the issuer table (provider: 'mir' would fall into the unknown-provider throw); writing {11} instead of {12}; changing the mastercard regex or refactoring the provider branch and drifting existing behaviour."
 }

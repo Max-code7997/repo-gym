@@ -187,6 +187,9 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
   .lesson .lede{font-size:15px}
   .xpbar{width:80px}
 }
+.lang-toggle{font-family:var(--mono);font-size:10px;letter-spacing:.12em;border:1px solid var(--rule-strong);background:transparent;color:var(--ink);padding:2px 7px;cursor:pointer;margin-left:4px}
+.lang-toggle:hover{background:var(--ink);color:var(--paper)}
+.brand-row{flex-wrap:wrap}
 
 </style>
 </head>
@@ -196,8 +199,9 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
     <div class="brand-row">
       <h1><span id="brandWord">REPO GYM</span></h1>
       <span class="issue">LAB 03</span>
+      <button type="button" class="lang-toggle" id="langToggle">EN</button>
     </div>
-    <div class="tagline">把真实开源仓库变成可判分的编程练习</div>
+    <div class="tagline" id="tagline">把真实开源仓库变成可判分的编程练习</div>
   </div>
   <div class="progress" id="progress"></div>
 </header>
@@ -210,6 +214,8 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 
 <script type="text/plain" id="runner-src">
 (function () {
+  var EN = DATA.lang === 'en';
+  function msg(zh, en) { return EN ? en : zh; }
   function post(m) { try { m.run = DATA.run; parent.postMessage(m, '*'); } catch (e) {} }
   var tests = DATA.tests || [];
   var results = [];
@@ -226,7 +232,7 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
       results[i] = { name: tests[i].name, pass: true, error: '' };
     } else {
       results[i] = { name: tests[i].name, pass: false,
-        error: '断言未通过：表达式返回 ' + fmt(v) + '，应为 true' };
+        error: msg('断言未通过：表达式返回 ' + fmt(v) + '，应为 true', 'Assertion failed: expression returned ' + fmt(v) + ', expected true') };
     }
   }
   var body = String(DATA.code == null ? '' : DATA.code) + '\n;\n';
@@ -248,7 +254,7 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
     return;
   }
   if (results.length < tests.length) {
-    post({ type: 'runtime', error: '代码提前中断（例如顶层 return），测试未全部执行' });
+    post({ type: 'runtime', error: msg('代码提前中断（例如顶层 return），测试未全部执行', 'Code stopped early (e.g. a top-level return); not all tests ran') });
     return;
   }
   post({ type: 'done', results: results });
@@ -264,14 +270,157 @@ var CURRICULUM = window.CURRICULUM || { chapters: [] };
 var COURSE = CURRICULUM.course || {};
 var CHAPTERS = CURRICULUM.chapters || [];
 var STORE_KEY = 'js-exercise-site-v1';
-var TYPE_LABEL = { fillin: '填空', bugfix: '缺陷修复', feature: '新功能', project: '毕业项目' };
-var DIFF_LABEL = { easy: '简单', medium: '中等', hard: '困难' };
 var XP_DIFF = { easy: 10, medium: 20, hard: 30 };
 var XP_PROJECT = 50;
 var XP_LESSON = 15;
 var LEVEL_TITLES = COURSE.levelTitles || ['Newcomer', 'Apprentice', 'Practitioner', 'Engineer', 'Maintainer'];
 var LEVEL_STEPS = COURSE.levelSteps || [0, 50, 110, 160, 200];
 var RUN_TIMEOUT = 10000;
+
+var I18N = {
+  zh: {
+    tagline: '把真实开源仓库变成可判分的编程练习',
+    docTitle: 'Repo Gym · JavaScript 练习场',
+    markRead: '标记已读 +{xp} XP',
+    readDone: '已读 ✓',
+    practice: '去做本章练习 →',
+    nextChapter: '下一章：{title} →',
+    run: '运行测试',
+    reset: '重置',
+    hint: '提示',
+    reference: '参考答案',
+    hints: '提示',
+    explanation: '解析',
+    noHints: '本题暂无提示。',
+    practiceNote: '练习提示：{text}',
+    running: '运行中…',
+    passedAll: '全部 {n} 条通过 · 本题完成',
+    passedSome: '通过 {a} / {n} 条用例',
+    parseError: '代码无法解析',
+    runtimeError: '代码运行出错',
+    timeout: '测试运行超时',
+    timeoutDetail: '代码可能存在死循环，请检查后重试。',
+    clickRun: '点击「运行测试」验证你的代码。',
+    resetDone: '代码已重置为初始状态，点击「运行测试」重新验证。',
+    confirmRef: '确定要查看参考答案吗？建议先自己完成本题再看答案。',
+    confirmReset: '确定要重置本题代码为初始状态吗？当前编辑的代码将丢失。',
+    listen: '朗读',
+    listenDesc: '朗读题面',
+    stop: '停止',
+    courseComplete: 'COURSE COMPLETE',
+    toNext: ' · 距下一级 {xp} XP',
+    maxLevel: ' · 已满级',
+    completeSuffix: ' · 课程完成'
+  },
+  en: {
+    tagline: 'Turn real open-source repos into a graded coding course',
+    docTitle: 'Repo Gym · JavaScript Course',
+    markRead: 'Mark as read +{xp} XP',
+    readDone: 'Read ✓',
+    practice: 'Start this chapter →',
+    nextChapter: 'Next chapter: {title} →',
+    run: 'Run tests',
+    reset: 'Reset',
+    hint: 'Hint',
+    reference: 'Reference',
+    hints: 'Hints',
+    explanation: 'Explanation',
+    noHints: 'No hints for this exercise.',
+    practiceNote: 'Practice: {text}',
+    running: 'Running…',
+    passedAll: 'All {n} cases passed · exercise complete',
+    passedSome: '{a} / {n} cases passed',
+    parseError: 'Code cannot be parsed',
+    runtimeError: 'Runtime error',
+    timeout: 'Test run timed out',
+    timeoutDetail: 'The code may contain an infinite loop. Check it and try again.',
+    clickRun: 'Click “Run tests” to verify your code.',
+    resetDone: 'Code reset to the starter. Click “Run tests” to verify again.',
+    confirmRef: 'Show the reference solution? Try to finish the exercise first.',
+    confirmReset: 'Reset this exercise to the starter code? Your current code will be lost.',
+    listen: 'Listen',
+    listenDesc: 'Read the prompt',
+    stop: 'Stop',
+    courseComplete: 'COURSE COMPLETE',
+    toNext: ' · {xp} XP to next level',
+    maxLevel: ' · max level',
+    completeSuffix: ' · course complete'
+  }
+};
+
+var TYPE_LABEL = {
+  zh: { fillin: '填空', bugfix: '缺陷修复', feature: '新功能', project: '毕业项目' },
+  en: { fillin: 'Fill-in', bugfix: 'Bug-fix', feature: 'Feature', project: 'Capstone' }
+};
+var DIFF_LABEL = {
+  zh: { easy: '简单', medium: '中等', hard: '困难' },
+  en: { easy: 'Easy', medium: 'Medium', hard: 'Hard' }
+};
+
+function loadState() {
+  var s = null;
+  try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+  if (!s || typeof s !== 'object' || !s.data || typeof s.data !== 'object') s = { data: {} };
+  if (!s.lessons || typeof s.lessons !== 'object') s.lessons = {};
+  if (!s.lastView && s.lastId) s.lastView = { type: 'exercise', id: s.lastId };
+  if (s.lang !== 'zh' && s.lang !== 'en') {
+    s.lang = (navigator.language || '').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en';
+  }
+  return s;
+}
+var state = loadState();
+
+function lang() { return state.lang === 'en' ? 'en' : 'zh'; }
+function isEn() { return lang() === 'en'; }
+function t(key, vars) {
+  var table = I18N[lang()] || I18N.zh;
+  var s = table[key] || I18N.zh[key] || key;
+  if (vars) {
+    for (var k in vars) {
+      if (Object.prototype.hasOwnProperty.call(vars, k)) {
+        s = s.split('{' + k + '}').join(String(vars[k]));
+      }
+    }
+  }
+  return s;
+}
+function pick(obj, key) {
+  if (!obj) return '';
+  if (isEn()) return obj[key + '_en'] || obj[key] || '';
+  return obj[key] || '';
+}
+function pickArray(obj, key) {
+  if (!obj) return [];
+  if (isEn()) return obj[key + '_en'] || obj[key] || [];
+  return obj[key] || [];
+}
+function exTitle(ex) { return pick(ex, 'title'); }
+function exDesc(ex) { return pick(ex, 'description'); }
+function exHints(ex) { return pickArray(ex, 'hints'); }
+function exExplanation(ex) { return pick(ex, 'explanation'); }
+function chTitle(ch) { return pick(ch, 'title'); }
+function chSubtitle(ch) { return pick(ch, 'subtitle'); }
+function lessonTitle(ch) { return pick(ch.lesson || {}, 'title'); }
+function lessonLede(ch) { return pick(ch.lesson || {}, 'lede'); }
+function lessonKeyIdea(ch) { return pick(ch.lesson || {}, 'keyIdea'); }
+function lessonPractice(ch) { return pick(ch.lesson || {}, 'practice'); }
+function lessonSections(ch) {
+  return (ch.lesson && ch.lesson.sections ? ch.lesson.sections : []).map(function (sec) {
+    return {
+      h: isEn() ? (sec.h_en || sec.h || '') : (sec.h || ''),
+      p: isEn() ? (sec.p_en || sec.p || '') : (sec.p || ''),
+      code: sec.code || ''
+    };
+  });
+}
+function typeLabel(x) {
+  var table = TYPE_LABEL[lang()] || TYPE_LABEL.zh;
+  return table[x] || x;
+}
+function diffLabel(x) {
+  var table = DIFF_LABEL[lang()] || DIFF_LABEL.zh;
+  return table[x] || x;
+}
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, function (c) {
@@ -301,20 +450,9 @@ function nextChapter(id) {
   for (var i = 0; i < CHAPTERS.length; i++) if (CHAPTERS[i].id === id) return CHAPTERS[i + 1] || null;
   return null;
 }
-function typeLabel(t) { return TYPE_LABEL[t] || t; }
-function diffLabel(d) { return DIFF_LABEL[d] || d; }
 function xpFor(ex) { return ex.type === 'project' ? XP_PROJECT : (XP_DIFF[ex.difficulty] || 20); }
 function lessonRead(id) { return !!state.lessons[id]; }
 
-function loadState() {
-  var s = null;
-  try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
-  if (!s || typeof s !== 'object' || !s.data || typeof s.data !== 'object') s = { data: {} };
-  if (!s.lessons || typeof s.lessons !== 'object') s.lessons = {};
-  if (!s.lastView && s.lastId) s.lastView = { type: 'exercise', id: s.lastId };
-  return s;
-}
-var state = loadState();
 function persist() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
 }
@@ -334,6 +472,9 @@ var currentId = null;
 var watchdog = null;
 var runToken = 0;
 var saveTimer = null;
+
+var synth = window.speechSynthesis || null;
+var activeSpeechBtn = null;
 
 function currentViewIs(type, id) {
   return !!(currentView && currentView.type === type && currentView.id === id);
@@ -365,15 +506,27 @@ function courseStats() {
   return { xp: xp, done: done, total: total, complete: total > 0 && done === total };
 }
 
+function applyChrome() {
+  document.documentElement.lang = isEn() ? 'en' : 'zh-CN';
+  document.title = t('docTitle');
+  var tag = document.getElementById('tagline');
+  if (tag) tag.textContent = t('tagline');
+  var lt = document.getElementById('langToggle');
+  if (lt) {
+    lt.textContent = isEn() ? '中文' : 'EN';
+    lt.title = isEn() ? '切换到中文' : 'Switch to English';
+  }
+}
+
 function renderProgress() {
   var s = courseStats();
   var lv = levelInfo(s.xp);
   var html = '<span class="lvl">LVL ' + pad(lv.level + 1) + '</span>' +
     '<span class="xpbar"><i style="width:' + Math.round(lv.pct * 100) + '%"></i></span>' +
     '<span class="xpnum">' + s.xp + ' XP</span>';
-  if (s.complete) html += '<span class="course-complete">COURSE COMPLETE</span>';
+  if (s.complete) html += '<span class="course-complete">' + t('courseComplete') + '</span>';
   $progress.innerHTML = html;
-  $progress.title = lv.title + (s.complete ? ' · course complete' : (lv.next == null ? ' · MAX' : ' · ' + (lv.next - s.xp) + ' XP to next level'));
+  $progress.title = lv.title + (s.complete ? t('completeSuffix') : (lv.next == null ? t('maxLevel') : t('toNext', { xp: lv.next - s.xp })));
 }
 
 function renderSidebar() {
@@ -390,14 +543,14 @@ function renderSidebar() {
     }
     html += '<section class="chapter" style="--i:' + i + '">' +
       '<div class="ch-head"><span class="ch-num">' + esc(ch.number) + '</span>' +
-      '<span class="ch-title">' + esc(ch.title) + '<em>' + esc(ch.subtitle || '') + '</em></span>' +
+      '<span class="ch-title">' + esc(chTitle(ch)) + '<em>' + esc(chSubtitle(ch)) + '</em></span>' +
       '<span class="ch-prog">' + done + '/' + total + '</span></div>' +
       '<ul class="ch-items">';
     html += '<li class="course-item lesson' +
       (currentViewIs('lesson', ch.id) ? ' on' : '') +
       (lessonRead(ch.id) ? ' done read' : '') +
-      '" data-kind="lesson" data-id="' + esc(ch.id) + '" tabindex="0" title="' + esc(ch.lesson.title) + '">' +
-      '<span class="ci-mark">§</span><span class="ci-title">' + esc(ch.lesson.title) + '</span>' +
+      '" data-kind="lesson" data-id="' + esc(ch.id) + '" tabindex="0" title="' + esc(lessonTitle(ch)) + '">' +
+      '<span class="ci-mark">§</span><span class="ci-title">' + esc(lessonTitle(ch)) + '</span>' +
       (lessonRead(ch.id) ? '<span class="ci-done">READ</span>' : '') +
       '</li>';
     for (var j = 0; j < ch.exerciseIds.length; j++) {
@@ -408,9 +561,9 @@ function renderSidebar() {
       html += '<li class="course-item ex' +
         (currentViewIs('exercise', id) ? ' on' : '') +
         (st.done ? ' done' : '') +
-        '" data-kind="exercise" data-id="' + esc(id) + '" tabindex="0" title="' + esc(ex.title) + '">' +
+        '" data-kind="exercise" data-id="' + esc(id) + '" tabindex="0" title="' + esc(exTitle(ex)) + '">' +
         '<span class="ci-mark">' + pad(j + 1) + '</span>' +
-        '<span class="ci-title">' + esc(ex.title) + '</span>' +
+        '<span class="ci-title">' + esc(exTitle(ex)) + '</span>' +
         '<span class="ci-badge">' + esc(typeLabel(ex.type)) + '</span>' +
         (st.done ? '<span class="stamp">PASS</span>' : '') +
         '</li>';
@@ -426,10 +579,67 @@ function revealActive() {
   try { active.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
 }
 
+function stopSpeech() {
+  if (synth) { try { synth.cancel(); } catch (e) {} }
+  resetSpeechButtons();
+}
+function resetSpeechButtons() {
+  if (activeSpeechBtn) {
+    activeSpeechBtn.dataset.speaking = '0';
+    activeSpeechBtn.textContent = activeSpeechBtn.dataset.label || t('listen');
+    activeSpeechBtn = null;
+  }
+}
+function speakText(text, btn) {
+  if (!synth) return;
+  stopSpeech();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = isEn() ? 'en-US' : 'zh-CN';
+  u.rate = 0.95;
+  u.pitch = 1;
+  var voices = [];
+  try { voices = synth.getVoices() || []; } catch (e) {}
+  var pref = isEn() ? 'en' : 'zh';
+  for (var i = 0; i < voices.length; i++) {
+    if ((voices[i].lang || '').toLowerCase().indexOf(pref) === 0) { u.voice = voices[i]; break; }
+  }
+  u.onend = resetSpeechButtons;
+  u.onerror = resetSpeechButtons;
+  activeSpeechBtn = btn;
+  btn.dataset.speaking = '1';
+  btn.textContent = t('stop');
+  try { synth.speak(u); } catch (e) { resetSpeechButtons(); }
+}
+function toggleSpeech(btn, text) {
+  if (btn.dataset.speaking === '1') stopSpeech();
+  else speakText(text, btn);
+}
+function joinSpeech(parts) {
+  var sep = isEn() ? '. ' : '。';
+  return parts.filter(function (x) { return x && String(x).trim(); })
+    .map(function (x) { return String(x).replace(/[.。!?！？\s]+$/, ''); })
+    .join(sep);
+}
+function lessonSpeech(ch) {
+  var parts = [lessonTitle(ch), lessonLede(ch)];
+  lessonSections(ch).forEach(function (sec) { parts.push(sec.h); parts.push(sec.p); });
+  parts.push(isEn() ? 'Key idea: ' + lessonKeyIdea(ch) : '要点：' + lessonKeyIdea(ch));
+  parts.push(lessonPractice(ch));
+  return joinSpeech(parts);
+}
+function exerciseSpeech(ex) {
+  return joinSpeech([exTitle(ex), exDesc(ex)]);
+}
+function listenButton(id, label) {
+  if (!synth) return '';
+  return '<button type="button" class="btn" id="' + id + '" data-label="' + esc(label) + '">' + esc(label) + '</button>';
+}
+
 function openLesson(id) {
   var ch = chapterById(id);
   if (!ch) return;
   saveCurrentCode();
+  stopSpeech();
   clearTimeout(watchdog);
   runToken++;
   currentView = { type: 'lesson', id: id };
@@ -446,6 +656,7 @@ function openExercise(id) {
   var ex = byId(id);
   if (!ex) return;
   saveCurrentCode();
+  stopSpeech();
   clearTimeout(watchdog);
   runToken++;
   currentView = { type: 'exercise', id: id };
@@ -460,7 +671,7 @@ function openExercise(id) {
 
 function renderLesson(ch) {
   var read = lessonRead(ch.id);
-  var secs = (ch.lesson.sections || []).map(function (sec) {
+  var secs = lessonSections(ch).map(function (sec) {
     return '<section class="lesson-sec"><h3>' + esc(sec.h) + '</h3><p>' + esc(sec.p) + '</p>' +
       (sec.code ? '<pre class="lesson-code">' + esc(sec.code) + '</pre>' : '') +
       '</section>';
@@ -469,20 +680,24 @@ function renderLesson(ch) {
   var html = '<div class="panel lesson">' +
     '<div class="eyebrow"><span>CHAPTER ' + esc(ch.number) + ' · LESSON</span><span>' +
       (ch.lesson.minutes || 5) + ' MIN READ' + (read ? ' · READ' : '') + '</span></div>' +
-    '<h2>' + esc(ch.lesson.title) + '</h2>' +
-    (ch.lesson.lede ? '<p class="lede">' + esc(ch.lesson.lede) + '</p>' : '') +
+    '<h2>' + esc(lessonTitle(ch)) + '</h2>' +
+    (lessonLede(ch) ? '<p class="lede">' + esc(lessonLede(ch)) + '</p>' : '') +
     secs +
-    (ch.lesson.keyIdea ? '<div class="key-idea"><span>KEY IDEA</span><p>' + esc(ch.lesson.keyIdea) + '</p></div>' : '') +
-    (ch.lesson.practice ? '<p class="lesson-practice">练习提示：' + esc(ch.lesson.practice) + '</p>' : '') +
+    (lessonKeyIdea(ch) ? '<div class="key-idea"><span>KEY IDEA</span><p>' + esc(lessonKeyIdea(ch)) + '</p></div>' : '') +
+    (lessonPractice(ch) ? '<p class="lesson-practice">' + esc(t('practiceNote', { text: lessonPractice(ch) })) + '</p>' : '') +
     '<div class="lesson-actions">' +
+      listenButton('btnListen', t('listen')) +
       '<button type="button" class="btn primary" id="btnRead"' + (read ? ' disabled' : '') + '>' +
-        (read ? '已读 ✓' : '标记已读 +' + XP_LESSON + ' XP') + '</button>' +
-      '<button type="button" class="btn" id="btnPractice">去做本章练习 →</button>' +
+        (read ? t('readDone') : t('markRead', { xp: XP_LESSON })) + '</button>' +
+      '<button type="button" class="btn" id="btnPractice">' + t('practice') + '</button>' +
     '</div>' +
-    (next ? '<div class="lesson-next"><button type="button" class="btn" id="btnNext">下一章：' + esc(next.title) + ' →</button></div>' : '') +
+    (next ? '<div class="lesson-next"><button type="button" class="btn" id="btnNext">' +
+      t('nextChapter', { title: chTitle(next) }) + '</button></div>' : '') +
     '</div>';
   $content.innerHTML = html;
 
+  var btnListen = document.getElementById('btnListen');
+  if (btnListen) btnListen.addEventListener('click', function () { toggleSpeech(btnListen, lessonSpeech(ch)); });
   var btnRead = document.getElementById('btnRead');
   if (btnRead) btnRead.addEventListener('click', function () {
     if (lessonRead(ch.id)) return;
@@ -512,12 +727,13 @@ function saveCurrentCode() {
 
 function renderDetail() {
   var ex = byId(currentId);
-  if (!ex) { $content.innerHTML = '<div class="panel">未找到题目。</div>'; return; }
+  if (!ex) { $content.innerHTML = '<div class="panel">Not found.</div>'; return; }
   var st = exState(ex.id);
   var code = (typeof st.code === 'string') ? st.code : (ex.starter_code || '');
   var tests = ex.tests || [];
   var chInfo = chapterOfExercise(ex.id);
   var exNo = indexOfEx(ex.id);
+  var hints = exHints(ex);
   $content.innerHTML =
     '<div class="panel ex-head">' +
       '<div class="eyebrow"><span>' +
@@ -525,40 +741,41 @@ function renderDetail() {
         'EXERCISE ' + pad(exNo + 1) + ' / ' + pad(EXERCISES.length) + '</span>' +
         '<span>' + esc(typeLabel(ex.type)) + ' · ' + esc(diffLabel(ex.difficulty)) +
         (st.done ? ' <em class="pass-mark">PASSED</em>' : '') + '</span></div>' +
-      '<h2>' + esc(ex.title) + '</h2>' +
+      '<h2>' + esc(exTitle(ex)) + '</h2>' +
       (ex.source ? '<div class="ex-meta">SOURCE ' + esc(ex.source) + (ex.entry ? ' · ENTRY ' + esc(ex.entry) : '') + '</div>' : '') +
-      '<div class="desc">' + esc(ex.description || '') + '</div>' +
+      '<div class="desc">' + esc(exDesc(ex)) + '</div>' +
     '</div>' +
     '<div class="panel">' +
       '<div class="toolbar">' +
-        '<button type="button" class="btn primary" id="btnRun">运行测试</button>' +
-        '<button type="button" class="btn" id="btnReset">重置</button>' +
-        '<button type="button" class="btn" id="btnHint">提示</button>' +
-        '<button type="button" class="btn" id="btnRef">参考答案</button>' +
+        '<button type="button" class="btn primary" id="btnRun">' + t('run') + '</button>' +
+        '<button type="button" class="btn" id="btnReset">' + t('reset') + '</button>' +
+        '<button type="button" class="btn" id="btnHint">' + t('hint') + '</button>' +
+        '<button type="button" class="btn" id="btnRef">' + t('reference') + '</button>' +
+        listenButton('btnListenDesc', t('listenDesc')) +
       '</div>' +
       '<div class="sub"><div class="console">' +
         '<div class="console-bar"><span class="dot"></span><span class="fname">' + esc(ex.id) + '.js</span>' +
         '<span class="entry">entry: ' + esc(ex.entry || '') + '</span></div>' +
-        '<textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" wrap="off" aria-label="代码编辑器"></textarea>' +
+        '<textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" wrap="off" aria-label="Code editor"></textarea>' +
       '</div></div>' +
-      '<div class="sub hidden" id="hintBox"><h4>提示</h4>' +
-        (ex.hints && ex.hints.length
-          ? ex.hints.map(function (h, i) { return '<div class="hint-item">' + (i + 1) + '. ' + esc(h) + '</div>'; }).join('')
-          : '<div class="hint-item">本题暂无提示。</div>') +
+      '<div class="sub hidden" id="hintBox"><h4>' + esc(t('hints')) + '</h4>' +
+        (hints.length
+          ? hints.map(function (h, i) { return '<div class="hint-item">' + (i + 1) + '. ' + esc(h) + '</div>'; }).join('')
+          : '<div class="hint-item">' + esc(t('noHints')) + '</div>') +
       '</div>' +
-      '<div class="sub hidden" id="refBox"><h4>参考答案</h4><pre class="refcode"></pre>' +
-        (ex.explanation ? '<h4>解析</h4><div class="explain"></div>' : '') +
+      '<div class="sub hidden" id="refBox"><h4>' + esc(t('reference')) + '</h4><pre class="refcode"></pre>' +
+        (exExplanation(ex) ? '<h4>' + esc(t('explanation')) + '</h4><div class="explain"></div>' : '') +
       '</div>' +
     '</div>' +
     '<div class="panel"><div class="eyebrow"><span>TEST LOG</span><span>' + tests.length + ' CASES</span></div>' +
-      '<div class="results" id="results"><div class="rstatus">点击「运行测试」验证你的代码。</div></div></div>';
+      '<div class="results" id="results"><div class="rstatus">' + esc(t('clickRun')) + '</div></div></div>';
 
   var editor = document.getElementById('editor');
   editor.value = code;
   var refPre = $content.querySelector('.refcode');
   if (refPre) refPre.textContent = ex.reference_solution || '';
   var explainEl = $content.querySelector('.explain');
-  if (explainEl) explainEl.textContent = ex.explanation || '';
+  if (explainEl) explainEl.textContent = exExplanation(ex);
 
   document.getElementById('btnRun').addEventListener('click', runTests);
   document.getElementById('btnReset').addEventListener('click', resetCode);
@@ -566,6 +783,8 @@ function renderDetail() {
     document.getElementById('hintBox').classList.toggle('hidden');
   });
   document.getElementById('btnRef').addEventListener('click', toggleRef);
+  var btnListen = document.getElementById('btnListenDesc');
+  if (btnListen) btnListen.addEventListener('click', function () { toggleSpeech(btnListen, exerciseSpeech(ex)); });
   editor.addEventListener('keydown', onTabKey);
   editor.addEventListener('input', function () {
     clearTimeout(saveTimer);
@@ -588,9 +807,7 @@ function toggleRef() {
   var box = document.getElementById('refBox');
   if (!box) return;
   if (box.classList.contains('hidden')) {
-    if (window.confirm('确定要查看参考答案吗？建议先自己完成本题再看答案。')) {
-      box.classList.remove('hidden');
-    }
+    if (window.confirm(t('confirmRef'))) box.classList.remove('hidden');
   } else {
     box.classList.add('hidden');
   }
@@ -600,12 +817,12 @@ function resetCode() {
   var ex = byId(currentId);
   var ed = document.getElementById('editor');
   if (!ex || !ed) return;
-  if (!window.confirm('确定要重置本题代码为初始状态吗？当前编辑的代码将丢失。')) return;
+  if (!window.confirm(t('confirmReset'))) return;
   ed.value = ex.starter_code || '';
   exState(ex.id).code = null;
   persist();
   var results = document.getElementById('results');
-  if (results) results.innerHTML = '<div class="rstatus">代码已重置为初始状态，点击「运行测试」重新验证。</div>';
+  if (results) results.innerHTML = '<div class="rstatus">' + esc(t('resetDone')) + '</div>';
 }
 
 function runTests() {
@@ -614,19 +831,22 @@ function runTests() {
   if (!ex || !ed) return;
   saveCurrentCode();
   var results = document.getElementById('results');
-  results.innerHTML = '<div class="rstatus">运行中…</div>';
-  var payload = JSON.stringify({ run: currentId, code: ed.value, tests: ex.tests || [] })
-    .replace(/</g, '\u003c')
-    .replace(/\u2028/g, '\u2028')
-    .replace(/\u2029/g, '\u2029');
-  var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><!--run ' + (++runToken) + '--></head><body><script>var DATA = ' + payload + ';\n' +
-    RUNNER_SRC + '\n<\/script></body></html>';
+  results.innerHTML = '<div class="rstatus">' + esc(t('running')) + '</div>';
+  var localizedTests = (ex.tests || []).map(function (t) {
+    return { name: (isEn() && t.name_en) ? t.name_en : t.name, expr: t.expr };
+  });
+  var payload = JSON.stringify({ run: currentId, code: ed.value, tests: localizedTests, lang: lang() });
+  payload = payload.split('<').join(String.fromCharCode(92) + 'u003c');
+  payload = payload.split(String.fromCharCode(0x2028)).join(String.fromCharCode(92) + 'u2028');
+  payload = payload.split(String.fromCharCode(0x2029)).join(String.fromCharCode(92) + 'u2029');
+  var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><!--run ' + (++runToken) + '--></head><body><script>var DATA = ' + payload + ';' + String.fromCharCode(10) +
+    RUNNER_SRC + String.fromCharCode(10) + '<\/script></body></html>';
   clearTimeout(watchdog);
   var token = runToken;
   watchdog = setTimeout(function () {
     if (token !== runToken) return;
     var r = document.getElementById('results');
-    if (r) r.innerHTML = '<div class="errbox"><div class="t">测试运行超时</div><div class="m">代码可能存在死循环，请检查后重试。</div></div>';
+    if (r) r.innerHTML = '<div class="errbox"><div class="t">' + esc(t('timeout')) + '</div><div class="m">' + esc(t('timeoutDetail')) + '</div></div>';
   }, RUN_TIMEOUT);
   $runner.srcdoc = doc;
 }
@@ -640,9 +860,9 @@ window.addEventListener('message', function (e) {
   if (!results) return;
   clearTimeout(watchdog);
   if (m.type === 'parse') {
-    results.innerHTML = '<div class="errbox"><div class="t">代码无法解析</div><div class="m">' + esc(m.error || '未知语法错误') + '</div></div>';
+    results.innerHTML = '<div class="errbox"><div class="t">' + esc(t('parseError')) + '</div><div class="m">' + esc(m.error || 'SyntaxError') + '</div></div>';
   } else if (m.type === 'runtime') {
-    results.innerHTML = '<div class="errbox"><div class="t">代码运行出错</div><div class="m">' + esc(m.error || '未知错误') + '</div></div>';
+    results.innerHTML = '<div class="errbox"><div class="t">' + esc(t('runtimeError')) + '</div><div class="m">' + esc(m.error || 'Error') + '</div></div>';
   } else if (m.type === 'done') {
     renderResults(m.results || []);
   }
@@ -663,8 +883,8 @@ function renderResults(results) {
   }
   var allPass = results.length > 0 && passCount === results.length;
   var head = allPass
-    ? '<div class="rstatus allpass">全部 ' + results.length + ' 条通过 · 本题完成</div>'
-    : '<div class="rstatus">通过 ' + passCount + ' / ' + results.length + ' 条用例</div>';
+    ? '<div class="rstatus allpass">' + esc(t('passedAll', { n: results.length })) + '</div>'
+    : '<div class="rstatus">' + esc(t('passedSome', { a: passCount, n: results.length })) + '</div>';
   el.innerHTML = head + html;
   if (ex) {
     var st = exState(ex.id);
@@ -691,7 +911,7 @@ function renderResults(results) {
   revealActive();
 }
 
-window.addEventListener('beforeunload', saveCurrentCode);
+window.addEventListener('beforeunload', function () { saveCurrentCode(); stopSpeech(); });
 
 $sidebar.addEventListener('click', function (e) {
   var item = e.target.closest('.course-item');
@@ -728,28 +948,49 @@ function decryptWord(el, text, duration) {
   var glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&*+=?/';
   var start = performance.now();
   function tick(now) {
-    var t = Math.min(1, (now - start) / duration);
+    var p = Math.min(1, (now - start) / duration);
     var out = '';
     for (var i = 0; i < text.length; i++) {
       if (text.charAt(i) === ' ') { out += ' '; continue; }
       var reveal = (i / text.length) * 0.55;
-      out += (t > reveal + 0.35) ? text.charAt(i) : glyphs.charAt(Math.floor(Math.random() * glyphs.length));
+      out += (p > reveal + 0.35) ? text.charAt(i) : glyphs.charAt(Math.floor(Math.random() * glyphs.length));
     }
     el.textContent = out;
-    if (t < 1) requestAnimationFrame(tick); else el.textContent = text;
+    if (p < 1) requestAnimationFrame(tick); else el.textContent = text;
   }
   requestAnimationFrame(tick);
 }
 
+function setLang(next) {
+  if (next !== 'zh' && next !== 'en') return;
+  if (next === lang()) return;
+  saveCurrentCode();
+  stopSpeech();
+  state.lang = next;
+  persist();
+  applyChrome();
+  renderSidebar();
+  renderProgress();
+  if (currentView) {
+    if (currentView.type === 'lesson') renderLesson(chapterById(currentView.id));
+    else if (currentView.type === 'exercise') renderDetail();
+  }
+  revealActive();
+}
+
 function init() {
   if (!EXERCISES.length) {
-    $content.innerHTML = '<div class="panel">未加载到题目数据：请确认 data.js 与 index.html 位于同一目录。</div>';
+    $content.innerHTML = '<div class="panel">Exercise data not loaded: check that data.js sits next to index.html.</div>';
     return;
   }
+  applyChrome();
+  var lt = document.getElementById('langToggle');
+  if (lt) lt.addEventListener('click', function () { setLang(isEn() ? 'zh' : 'en'); });
+
   if (!CHAPTERS.length) {
     CHAPTERS = [{
-      id: 'all', number: '01', title: '全部练习', subtitle: '',
-      lesson: { title: '练习清单', minutes: 1, lede: '直接从第一题开始。', sections: [], keyIdea: '', practice: '' },
+      id: 'all', number: '01', title: 'Exercises', subtitle: '',
+      lesson: { title: 'Exercise list', minutes: 1, lede: 'Start with the first exercise.', sections: [], keyIdea: '', practice: '' },
       exerciseIds: EXERCISES.map(function (e) { return e.id; })
     }];
     renderSidebar();

@@ -24,6 +24,7 @@ A five-chapter mini-course built around real code from [validator.js](https://gi
 - Your code and the tests run inside a `sandbox="allow-scripts"` iframe.
 - Progress, best completion state, XP, lesson reads and editor code are stored in `localStorage`.
 - XP: lesson 15, easy 10, medium 20, hard 30, capstone 50. Five levels, Newcomer → Maintainer.
+- Every lesson and exercise prompt is available in 中文 and English (top-bar toggle). Lessons and prompts can be read aloud with the browser's built-in speech synthesis.
 
 ## How it was built
 
@@ -34,7 +35,7 @@ Built with **AutoClaw** (GLM-5.3) in four passes:
 3. **Independent auditor** — reference must pass every test; starter must fail at least one; each solution gets three semantic mutations that the tests must catch.
 4. **Site builder** — the static app with an in-browser test runner.
 
-AutoClaw generated the exercise packs and the site. The course structure, lesson notes, capstone brief and the final test fixes were written and verified by the author.
+AutoClaw generated the exercise packs and the site. The course structure, lesson notes, capstone brief and the final test fixes were written and verified by the author. The English edition is a human translation of the Chinese content.
 
 The audit is in [audit.md](audit.md): **26/27 mutants killed; 1 mutant proven equivalent.** The equivalent mutant is documented in the matrix: in 2026, the two branches it changes map to 1926 and 2026, both non-leap years, so `isDate` cannot distinguish them.
 

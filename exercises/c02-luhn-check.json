@@ -9,19 +9,59 @@
   "starter_code": "// luhnCheck —— Luhn（mod 10）校验和（fillin 起点）\n// 仓库来源：src/lib/util/algorithms.js（validator.js 13.15.35）\n// 契约：入参 str 为只含数字的字符串（含末位校验位）；返回布尔值。\n// 算法要求：\n//   1) 从最右一位（校验位）开始向左遍历，最右位不翻倍；\n//   2) 未翻倍位：数字直接累加；\n//   3) 翻倍位：数字乘 2，乘积大于 9 时按位拆开求和（如 15 -> 1+5=6）后累加；\n//   4) 每处理完一位，翻倍状态取反；\n//   5) 总和能被 10 整除返回 true。\n//   非数字字符经 parseInt 得到 NaN，应自然传导为 false，无需特判。\n\nfunction luhnCheck(str) {\n  let checksum = 0;\n  let second = false;\n\n  // TODO: 补全核心循环（从 str.length - 1 遍历到 0）\n  //  - 数字转换：parseInt(str[i], 10)\n  //  - second 为 true 时翻倍并处理乘积大于 9 的情况\n  //  - 每轮结束后翻转 second\n\n  return checksum % 10 === 0;\n}\n",
   "reference_solution": "// luhnCheck —— Luhn（mod 10）校验和（参考实现，与仓库 src/lib/util/algorithms.js:26 一致）\nfunction luhnCheck(str) {\n  let checksum = 0;\n  let second = false;\n  for (let i = str.length - 1; i >= 0; i--) {\n    if (second) {\n      const product = parseInt(str[i], 10) * 2;\n      if (product > 9) {\n        // sum digits of product and add to checksum\n        checksum += product.toString().split('').map(a => parseInt(a, 10)).reduce((a, b) => a + b, 0);\n      } else {\n        checksum += product;\n      }\n    } else {\n      checksum += parseInt(str[i], 10);\n    }\n    second = !second;\n  }\n  return checksum % 10 === 0;\n}\n",
   "tests": [
-    { "name": "经典 Luhn 示例（维基百科）", "expr": "luhnCheck('79927398713') === true" },
-    { "name": "16 位 Visa 测试号", "expr": "luhnCheck('4111111111111111') === true" },
-    { "name": "15 位 Amex 测试号（奇数长度）", "expr": "luhnCheck('378282246310005') === true" },
-    { "name": "16 位 Mastercard 测试号", "expr": "luhnCheck('5555555555554444') === true" },
-    { "name": "单个 0 边界", "expr": "luhnCheck('0') === true" },
-    { "name": "校验位 +1 即失败", "expr": "luhnCheck('79927398714') === false" },
-    { "name": "末位改动即失败", "expr": "luhnCheck('4111111111111112') === false" },
-    { "name": "非数字字符传导为 false", "expr": "luhnCheck('7992739871x') === false" }
+    {
+      "name": "经典 Luhn 示例（维基百科）",
+      "expr": "luhnCheck('79927398713') === true",
+      "name_en": "Classic Luhn example (Wikipedia)"
+    },
+    {
+      "name": "16 位 Visa 测试号",
+      "expr": "luhnCheck('4111111111111111') === true",
+      "name_en": "16-digit Visa test number"
+    },
+    {
+      "name": "15 位 Amex 测试号（奇数长度）",
+      "expr": "luhnCheck('378282246310005') === true",
+      "name_en": "15-digit Amex test number (odd length)"
+    },
+    {
+      "name": "16 位 Mastercard 测试号",
+      "expr": "luhnCheck('5555555555554444') === true",
+      "name_en": "16-digit Mastercard test number"
+    },
+    {
+      "name": "单个 0 边界",
+      "expr": "luhnCheck('0') === true",
+      "name_en": "Single 0 boundary"
+    },
+    {
+      "name": "校验位 +1 即失败",
+      "expr": "luhnCheck('79927398714') === false",
+      "name_en": "Check digit +1 fails"
+    },
+    {
+      "name": "末位改动即失败",
+      "expr": "luhnCheck('4111111111111112') === false",
+      "name_en": "Changing the last digit fails"
+    },
+    {
+      "name": "非数字字符传导为 false",
+      "expr": "luhnCheck('7992739871x') === false",
+      "name_en": "Non-digit characters propagate to false"
+    }
   ],
   "hints": [
     "最右位是校验位且不翻倍；翻倍状态从右向左逐位交替，处理完一位就取反。",
     "乘积大于 9 时不要直接累加乘积：把十位与个位相加（15 -> 6），字符串拆位或减 9 均可。",
     "奇数与偶数长度都要正确：分别用 79927398713 与 4111111111111111 自测。"
   ],
-  "explanation": "参考实现从最右位开始遍历，用 second 标记翻倍位：未翻倍位直接累加 parseInt 后的数字；翻倍位先乘 2，乘积大于 9 时按位拆开求和（等价于减 9），随后每轮翻转 second，最后 checksum % 10 === 0。常见坑：从左往右遍历导致奇偶长度下翻倍位错位；乘积大于 9 时直接累加乘积；忘记翻转 second；对非数字字符做特判——原实现依赖 parseInt 的 NaN 传导使结果为 false，无需（也不应）特判。"
+  "explanation": "参考实现从最右位开始遍历，用 second 标记翻倍位：未翻倍位直接累加 parseInt 后的数字；翻倍位先乘 2，乘积大于 9 时按位拆开求和（等价于减 9），随后每轮翻转 second，最后 checksum % 10 === 0。常见坑：从左往右遍历导致奇偶长度下翻倍位错位；乘积大于 9 时直接累加乘积；忘记翻转 second；对非数字字符做特判——原实现依赖 parseInt 的 NaN 传导使结果为 false，无需（也不应）特判。",
+  "title_en": "Complete the Luhn checksum loop",
+  "description_en": "Context: luhnCheck is validator.js's internal Luhn (mod 10) checksum helper (src/lib/util/algorithms.js). It takes a string of digits including the check digit and returns a boolean. Task: fill in the core loop — walk from the rightmost digit (the check digit, never doubled) to the left; add undoubled digits directly; for doubled positions multiply by 2 and, if the product is greater than 9, sum its digits (15 -> 1+5=6) before adding; flip the doubling flag after each digit. Return true when the total is divisible by 10. Non-digit characters become NaN via parseInt and should naturally fall through to false; no special case is needed. Acceptance: keep the signature and return contract, pass all tests, and only fill in the missing implementation without adding dependencies or changing other code.",
+  "hints_en": [
+    "The rightmost digit is the check digit and is never doubled; the doubling flag alternates as you move left — flip it after every digit.",
+    "When the product is greater than 9, do not add the product directly: add its two digits (15 -> 6). Splitting the string or subtracting 9 both work.",
+    "Both odd and even lengths must work: test with 79927398713 and 4111111111111111."
+  ],
+  "explanation_en": "The reference walks from the right with a second flag. Undoubled positions add parseInt(value); doubled positions multiply by 2 and, when the product is greater than 9, add the two digits (equivalent to subtracting 9). Flip second after every digit and return checksum % 10 === 0. Common traps: iterating left to right so the doubling parity is wrong for odd/even lengths; adding the product directly when it is above 9; forgetting to flip the flag; special-casing non-digits — the original relies on parseInt's NaN propagating to false, so no special case is needed."
 }
