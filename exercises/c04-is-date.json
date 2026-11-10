@@ -1,0 +1,67 @@
+{
+  "id": "c04-is-date",
+  "title": "修复 isDate 误拒默认选项下的合法日期",
+  "type": "bugfix",
+  "difficulty": "medium",
+  "source": "src/lib/isDate.js:24",
+  "entry": "isDate",
+  "description": "背景：isDate 按格式解析日期字符串并验证真实存在：默认格式 YYYY/MM/DD；默认分隔符表为 ['/', '-']；非严格模式下输入可使用分隔符表中任一分隔符（允许与格式所用分隔符不同），严格模式（strictMode: true）则强制输入与格式长度、分隔符一致；各字段位数必须与占位符一致（如 DD 对应两位日）；2 月日期通过构造 UTC 日期回读日号校验（闰年规则由此保证）；非字符串输入走 Date 对象兜底分支；兼容旧式 isDate(input, '格式字符串') 传参。用户反馈：isDate('2020-02-19') 与 isDate('15-07-2002', 'DD/MM/YYYY') 等带连字符的合法日期被误拒（返回 false）。要求：定位并最小化修复该缺陷，不得改变上述其余文档化行为。验收标准：全部测试表达式通过，修复只触及缺陷根因，不引入新依赖。",
+  "starter_code": "// isDate —— 校验格式化日期字符串（bugfix 起点）\n// 仓库来源：src/lib/isDate.js（validator.js 13.15.35）\n// merge / default_date_options / isValidFormat / zip 与仓库实现一致。\n\nfunction merge(obj = {}, defaults) {\n  if (typeof obj !== 'object' || obj === null) {\n    obj = {};\n  }\n  for (const key in defaults) {\n    if (typeof obj[key] === 'undefined') {\n      obj[key] = defaults[key];\n    }\n  }\n  return obj;\n}\n\nconst default_date_options = {\n  format: 'YYYY/MM/DD',\n  delimiters: ['/', '-'],\n  strictMode: false,\n};\n\nfunction isValidFormat(format) {\n  return /(^(y{4}|y{2})[.\\/-](m{1,2})[.\\/-](d{1,2})$)|(^(m{1,2})[.\\/-](d{1,2})[.\\/-]((y{4}|y{2})$))|(^(d{1,2})[.\\/-](m{1,2})[.\\/-]((y{4}|y{2})$))/gi.test(format);\n}\n\nfunction zip(date, format) {\n  const zippedArr = [],\n    len = Math.max(date.length, format.length);\n\n  for (let i = 0; i < len; i++) {\n    zippedArr.push([date[i], format[i]]);\n  }\n\n  return zippedArr;\n}\n\nfunction isDate(input, options) {\n  if (typeof options === 'string') { // 兼容旧式 isDate(input [, format])\n    options = merge({ format: options }, default_date_options);\n  } else {\n    options = merge(options, default_date_options);\n  }\n  if (typeof input === 'string' && isValidFormat(options.format)) {\n    if (options.strictMode && input.length !== options.format.length) return false;\n    const formatDelimiter = options.delimiters\n      .find(delimiter => options.format.indexOf(delimiter) !== -1);\n    const dateDelimiter = formatDelimiter;\n    const dateAndFormat = zip(\n      input.split(dateDelimiter),\n      options.format.toLowerCase().split(formatDelimiter)\n    );\n    const dateObj = {};\n\n    for (const [dateWord, formatWord] of dateAndFormat) {\n      if (!dateWord || !formatWord || dateWord.length !== formatWord.length) {\n        return false;\n      }\n\n      dateObj[formatWord.charAt(0)] = dateWord;\n    }\n\n    let fullYear = dateObj.y;\n\n    // 年份不允许以连字符开头\n    if (fullYear.startsWith('-')) {\n      return false;\n    }\n\n    if (dateObj.y.length === 2) {\n      const parsedYear = parseInt(dateObj.y, 10);\n\n      if (isNaN(parsedYear)) {\n        return false;\n      }\n\n      const currentYearLastTwoDigits = new Date().getFullYear() % 100;\n\n      if (parsedYear < currentYearLastTwoDigits) {\n        fullYear = `20${dateObj.y}`;\n      } else {\n        fullYear = `19${dateObj.y}`;\n      }\n    }\n\n    let month = dateObj.m;\n\n    if (dateObj.m.length === 1) {\n      month = `0${dateObj.m}`;\n    }\n\n    let day = dateObj.d;\n\n    if (dateObj.d.length === 1) {\n      day = `0${dateObj.d}`;\n    }\n\n    return new Date(`${fullYear}-${month}-${day}T00:00:00.000Z`).getUTCDate() === +dateObj.d;\n  }\n\n  if (!options.strictMode) {\n    return Object.prototype.toString.call(input) === '[object Date]' && isFinite(input);\n  }\n\n  return false;\n}\n",
+  "reference_solution": "// isDate —— 校验格式化日期字符串（参考实现，与仓库 src/lib/isDate.js 一致）\n\nfunction merge(obj = {}, defaults) {\n  if (typeof obj !== 'object' || obj === null) {\n    obj = {};\n  }\n  for (const key in defaults) {\n    if (typeof obj[key] === 'undefined') {\n      obj[key] = defaults[key];\n    }\n  }\n  return obj;\n}\n\nconst default_date_options = {\n  format: 'YYYY/MM/DD',\n  delimiters: ['/', '-'],\n  strictMode: false,\n};\n\nfunction isValidFormat(format) {\n  return /(^(y{4}|y{2})[.\\/-](m{1,2})[.\\/-](d{1,2})$)|(^(m{1,2})[.\\/-](d{1,2})[.\\/-]((y{4}|y{2})$))|(^(d{1,2})[.\\/-](m{1,2})[.\\/-]((y{4}|y{2})$))/gi.test(format);\n}\n\nfunction zip(date, format) {\n  const zippedArr = [],\n    len = Math.max(date.length, format.length);\n\n  for (let i = 0; i < len; i++) {\n    zippedArr.push([date[i], format[i]]);\n  }\n\n  return zippedArr;\n}\n\nfunction isDate(input, options) {\n  if (typeof options === 'string') { // 兼容旧式 isDate(input [, format])\n    options = merge({ format: options }, default_date_options);\n  } else {\n    options = merge(options, default_date_options);\n  }\n  if (typeof input === 'string' && isValidFormat(options.format)) {\n    if (options.strictMode && input.length !== options.format.length) return false;\n    const formatDelimiter = options.delimiters\n      .find(delimiter => options.format.indexOf(delimiter) !== -1);\n    const dateDelimiter = options.strictMode\n      ? formatDelimiter\n      : options.delimiters.find(delimiter => input.indexOf(delimiter) !== -1);\n    const dateAndFormat = zip(\n      input.split(dateDelimiter),\n      options.format.toLowerCase().split(formatDelimiter)\n    );\n    const dateObj = {};\n\n    for (const [dateWord, formatWord] of dateAndFormat) {\n      if (!dateWord || !formatWord || dateWord.length !== formatWord.length) {\n        return false;\n      }\n\n      dateObj[formatWord.charAt(0)] = dateWord;\n    }\n\n    let fullYear = dateObj.y;\n\n    // 年份不允许以连字符开头\n    if (fullYear.startsWith('-')) {\n      return false;\n    }\n\n    if (dateObj.y.length === 2) {\n      const parsedYear = parseInt(dateObj.y, 10);\n\n      if (isNaN(parsedYear)) {\n        return false;\n      }\n\n      const currentYearLastTwoDigits = new Date().getFullYear() % 100;\n\n      if (parsedYear < currentYearLastTwoDigits) {\n        fullYear = `20${dateObj.y}`;\n      } else {\n        fullYear = `19${dateObj.y}`;\n      }\n    }\n\n    let month = dateObj.m;\n\n    if (dateObj.m.length === 1) {\n      month = `0${dateObj.m}`;\n    }\n\n    let day = dateObj.d;\n\n    if (dateObj.d.length === 1) {\n      day = `0${dateObj.d}`;\n    }\n\n    return new Date(`${fullYear}-${month}-${day}T00:00:00.000Z`).getUTCDate() === +dateObj.d;\n  }\n\n  if (!options.strictMode) {\n    return Object.prototype.toString.call(input) === '[object Date]' && isFinite(input);\n  }\n\n  return false;\n}\n",
+  "tests": [
+    {
+      "name": "默认格式下连字符分隔（非严格）",
+      "expr": "isDate('2020-02-19') === true"
+    },
+    {
+      "name": "闰年 2 月 29 日",
+      "expr": "isDate('2020/02/29') === true"
+    },
+    {
+      "name": "非闰年 2 月 29 日",
+      "expr": "isDate('2019-02-29') === false"
+    },
+    {
+      "name": "4 月 31 日不存在",
+      "expr": "isDate('2020-04-31') === false"
+    },
+    {
+      "name": "混合分隔符拒绝",
+      "expr": "isDate('2020/03-15') === false"
+    },
+    {
+      "name": "缺少日字段",
+      "expr": "isDate('2024-05') === false"
+    },
+    {
+      "name": "严格模式长度不符",
+      "expr": "isDate('2021/1/31', { format: 'YYYY/MM/DD', strictMode: true }) === false"
+    },
+    {
+      "name": "旧式字符串 format 兼容",
+      "expr": "isDate('15-07-2002', 'DD/MM/YYYY') === true"
+    },
+    {
+      "name": "严格模式拒绝不同分隔符",
+      "expr": "isDate('2021-01-31', { format: 'YYYY/MM/DD', strictMode: true }) === false"
+    },
+    {
+      "name": "2 位年份映射到 19xx",
+      "expr": "isDate('99/01/01', 'YY/MM/DD') === true"
+    },
+    {
+      "name": "2 位年份映射世纪后闰年成立",
+      "expr": "isDate('00/02/29', 'YY/MM/DD') === true"
+    },
+    {
+      "name": "2 位年份映射世纪后非闰年拒绝",
+      "expr": "isDate('99/02/29', 'YY/MM/DD') === false"
+    }
+  ],
+  "hints": [
+    "先复现再定位：isDate('2020-02-19') 为 false。注意格式分隔符与输入分隔符在非严格模式下是两次独立查找。",
+    "检查 dateDelimiter 的取值来源：只有 strictMode 为 true 时才应固定使用格式分隔符。",
+    "修复后回归确认：混合分隔符（'2020/03-15'）仍被拒绝，严格模式与位数一致性检查不受影响。"
+  ],
+  "explanation": "参考实现中 formatDelimiter 在格式串中查找分隔符，dateDelimiter 在非严格模式下按输入中实际出现的分隔符查找（strictMode 为 true 时才固定用格式分隔符），二者分别用于切分输入与格式。本缺陷把 dateDelimiter 直接固定成了 formatDelimiter，导致输入使用连字符（默认允许）时整段被当作一个字段与格式逐位比较而失败。常见坑：把两次分隔符查找合并；顺手改动 zip 或位数检查导致 '2021/1/31' 对 DD 的行为变化；忽略 2 月校验依赖 getUTCDate 回读（Date 构造会把 2019-02-29 自动溢出为 3 月 1 日）。"
+}

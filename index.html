@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repo Gym · JavaScript 练习场</title>
+<noscript><p style="text-align:center;padding:20px;">本站点需要启用 JavaScript 才能使用。</p></noscript>
+<style>
+:root{
+  --paper:#f2eee4;--paper-2:#eae4d6;--ink:#17150f;--ink-2:#3b362b;
+  --muted:#7b7363;--rule:#d6cdba;--rule-strong:#b8ad97;
+  --red:#c03a1b;--red-deep:#8f2a13;--green:#2f6b3a;
+  --console:#161511;--code:#e9e3d5;
+  --mono:"Cascadia Mono","Cascadia Code","JetBrains Mono",Consolas,"Courier New",monospace;
+  --serif:"Palatino Linotype","Book Antiqua",Palatino,"Songti SC",SimSun,Georgia,serif;
+  --shadow:3px 3px 0 rgba(23,21,15,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--serif);font-size:15px;line-height:1.62;color:var(--ink);background-color:var(--paper);
+  background-image:radial-gradient(rgba(23,21,15,.13) 1px,transparent 1px);background-size:22px 22px;
+  -webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.055;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+body::after{content:"";position:fixed;left:22px;top:0;bottom:0;width:1px;background:rgba(192,58,27,.28);z-index:0;pointer-events:none}
+@media (max-width:860px){body::after{display:none}}
+.topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;
+  padding:16px 26px 13px;background:rgba(242,238,228,.94);backdrop-filter:blur(6px);border-bottom:2px solid var(--ink)}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:1px;background:var(--red)}
+.brand{display:flex;flex-direction:column;gap:3px}
+.brand-row{display:flex;align-items:baseline;gap:12px}
+.topbar h1{font-family:var(--serif);font-size:26px;line-height:1;letter-spacing:.10em;font-weight:700;text-transform:uppercase}
+.issue{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--red);border:1px solid var(--red);padding:1px 6px;transform:translateY(-2px);white-space:nowrap}
+.tagline{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted)}
+.progress{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted);white-space:nowrap}
+.pg-label{text-transform:uppercase}
+.ticks{display:flex;gap:3px}
+.tick{width:15px;height:6px;border:1px solid var(--rule-strong);background:transparent;transition:background .3s}
+.tick.on{background:var(--ink);border-color:var(--ink)}
+.progress b{color:var(--ink);font-weight:700}
+.layout{position:relative;z-index:1;display:flex;align-items:flex-start;gap:26px;max-width:1240px;margin:26px auto 0;padding:0 26px}
+.sidebar{width:318px;flex:0 0 318px}
+.side-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--muted);border-bottom:1px solid var(--rule-strong);padding-bottom:6px;margin-bottom:10px}
+.filters{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:14px}
+.chip{border:0;background:transparent;color:var(--muted);padding:4px 9px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;cursor:pointer;border-bottom:1px solid transparent}
+.chip:hover{color:var(--ink)}
+.chip.on{color:var(--ink);border-bottom:2px solid var(--red)}
+.ex-list{list-style:none;display:flex;flex-direction:column;gap:9px}
+.ex-item{position:relative;display:flex;gap:12px;background:var(--paper);border:1px solid var(--rule-strong);padding:10px 12px 11px 10px;cursor:pointer;box-shadow:var(--shadow);overflow:hidden}
+.ex-item::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(190px circle at var(--mx,50%) var(--my,50%),rgba(192,58,27,.11),transparent 68%)}
+.ex-item:hover::before{opacity:1}
+.ex-item:hover{border-color:var(--ink)}
+.ex-item.on{border-color:var(--ink);box-shadow:4px 4px 0 rgba(192,58,27,.18)}
+.ex-item.on::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red)}
+.idx{font-family:var(--mono);font-size:22px;line-height:1;color:var(--rule-strong);font-weight:700;min-width:34px;padding-top:2px}
+.ex-item.on .idx{color:var(--red)}
+.ex-body{flex:1;min-width:0}
+.ex-item .l1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ex-item .eid{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--muted)}
+.stamp{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--green);border:1px solid var(--green);padding:0 4px;transform:rotate(-3deg);opacity:0}
+.ex-item.done .stamp{opacity:1}
+.ex-item h3{font-family:var(--serif);font-size:15px;line-height:1.35;margin:3px 0 7px;font-weight:600}
+.ex-item .l2{display:flex;gap:6px;align-items:center}
+.badge{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:1px 6px;border:1px solid var(--rule-strong);color:var(--muted);white-space:nowrap}
+.badge.type{color:var(--ink);border-color:var(--ink-2)}
+.badge.easy{color:var(--green);border-color:var(--green)}
+.badge.medium{color:var(--red-deep);border-color:var(--red)}
+.badge.hard{color:var(--paper);background:var(--red);border-color:var(--red)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column;gap:18px}
+.panel{position:relative;background:var(--paper);border:1px solid var(--ink);padding:20px 22px;box-shadow:var(--shadow)}
+.ex-head{padding-top:18px}
+.ex-head::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--red)}
+.eyebrow{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--muted);margin-bottom:8px;text-transform:uppercase}
+.pass-mark{font-style:normal;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--green);border:1px solid var(--green);padding:0 4px;margin-left:6px;transform:rotate(-2deg);display:inline-block}
+.ex-head h2{font-family:var(--serif);font-size:27px;line-height:1.22;letter-spacing:.01em;font-weight:700;margin-bottom:8px}
+.ex-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--muted);word-break:break-all;border-top:1px solid var(--rule);padding-top:8px}
+.desc{margin-top:12px;font-size:15px;line-height:1.78;white-space:pre-wrap;word-break:break-word;color:var(--ink-2)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ink);background:transparent;color:var(--ink);padding:9px 15px;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s,color .12s}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.primary{background:var(--red);border-color:var(--red);color:var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.btn.primary:hover{background:var(--red-deep);transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.btn:focus-visible,.chip:focus-visible,.ex-item:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.sub{margin-top:16px}
+.sub h4{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-bottom:8px}
+.console{border:1px solid var(--ink);background:var(--console);box-shadow:4px 4px 0 rgba(23,21,15,.15)}
+.console-bar{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid #343026;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:#9b9280}
+.console-bar .dot{width:7px;height:7px;background:var(--red);border-radius:50%;box-shadow:0 0 0 2px rgba(192,58,27,.18)}
+.console-bar .fname{color:var(--code)}
+.console-bar .entry{margin-left:auto;color:#8c8371}
+#editor{display:block;width:100%;min-height:320px;resize:vertical;font-family:var(--mono);font-size:13px;line-height:1.7;padding:14px 16px;border:0;background:var(--console);color:var(--code);tab-size:2;white-space:pre;caret-color:var(--red)}
+#editor:focus{outline:2px solid var(--red);outline-offset:-2px}
+#editor::selection{background:rgba(192,58,27,.35)}
+.hidden{display:none}
+.hint-item{font-size:14px;margin:5px 0}
+.refcode{font-family:var(--mono);font-size:12.5px;background:var(--paper-2);border:1px solid var(--rule-strong);padding:12px;overflow-x:auto;white-space:pre;margin-bottom:10px}
+.explain{font-size:14px;white-space:pre-wrap;word-break:break-word}
+.results .rstatus{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);padding:2px 0 8px;border-bottom:1px solid var(--rule)}
+.rstatus.allpass{color:var(--green)}
+.case{border-bottom:1px dotted var(--rule-strong);padding:9px 2px;font-size:13.5px}
+.case .cl{display:flex;gap:10px;align-items:baseline}
+.case .mark{flex:0 0 auto;font-family:var(--mono);font-weight:700;font-size:12px}
+.case .mark.ok{color:var(--green)}
+.case .mark.bad{color:var(--red)}
+.case .cname{flex:1 1 auto}
+.case .cerr{color:var(--red-deep);font-family:var(--mono);font-size:11.5px;margin:4px 0 0 26px;white-space:pre-wrap;word-break:break-word}
+.errbox{border:1px solid var(--red);border-left:4px solid var(--red);background:rgba(192,58,27,.06);padding:10px 12px;font-size:13px}
+.errbox .t{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);font-weight:700}
+.errbox .m{margin-top:5px;font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word}
+.footer{position:relative;z-index:1;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);padding:30px 16px 40px;border-top:1px solid var(--rule);margin-top:34px}
+#runner{display:none}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+body.boot .ex-item{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 55ms)}
+@media (prefers-reduced-motion:reduce){
+  body.boot .ex-item{animation:none}
+  .ex-item::before{transition:none}
+  .btn{transition:none}
+}
+@media (max-width:860px){
+  .topbar{align-items:flex-start;flex-direction:column;gap:10px;padding:15px 18px 12px}
+  .layout{flex-direction:column;align-items:stretch;padding:0 18px;margin-top:18px;gap:18px}
+  .sidebar{width:100%;flex:none}
+  .ex-list{flex-direction:row;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
+  .ex-item{flex:0 0 250px;scroll-snap-align:start}
+  .ex-head h2{font-size:22px}
+  .panel{padding:16px}
+  .eyebrow{flex-direction:column;gap:3px}
+}
+
+/* ---- course / syllabus ---- */
+.sidebar{position:sticky;top:96px;max-height:calc(100vh - 120px);overflow:auto;padding-right:4px;width:318px;flex:0 0 318px}
+.chapter{margin:0 0 14px}
+.ch-head{display:flex;align-items:flex-start;gap:8px;padding:9px 0 5px;border-top:1px solid var(--rule-strong);font-family:var(--mono)}
+.ch-num{font-size:9px;letter-spacing:.14em;color:var(--red);padding-top:2px}
+.ch-title{flex:1;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);line-height:1.4}
+.ch-title em{display:block;font-style:normal;font-size:10px;letter-spacing:.02em;text-transform:none;color:var(--muted);margin-top:1px}
+.ch-prog{font-size:9px;color:var(--muted);padding-top:2px}
+.ch-items{list-style:none;display:flex;flex-direction:column;gap:1px}
+.course-item{position:relative;display:flex;align-items:center;gap:8px;padding:6px 8px;border-left:2px solid transparent;cursor:pointer;overflow:hidden}
+.course-item::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;
+  background:radial-gradient(160px circle at var(--mx,50%) var(--my,50%),rgba(192,58,27,.13),transparent 70%)}
+.course-item:hover::before{opacity:1}
+.course-item:hover{background:rgba(192,58,27,.04)}
+.course-item.on{border-left-color:var(--red);background:rgba(192,58,27,.07)}
+.course-item .ci-mark{font-family:var(--mono);font-size:10px;color:var(--rule-strong);width:22px;flex:none}
+.course-item.on .ci-mark{color:var(--red)}
+.course-item .ci-title{flex:1;min-width:0;font-size:13px;line-height:1.35;color:var(--ink-2)}
+.course-item.done .ci-title{color:var(--ink)}
+.course-item .ci-badge{font-family:var(--mono);font-size:8px;letter-spacing:.06em;color:var(--muted);border:1px solid var(--rule);padding:0 4px;white-space:nowrap}
+.course-item .ci-done{font-family:var(--mono);font-size:9px;color:var(--green);flex:none}
+.course-item .stamp{flex:none}
+.course-item.done .stamp{opacity:1}
+.course-item.lesson .ci-title{font-style:italic}
+.course-item.lesson.read .ci-title{color:var(--muted)}
+/* ---- xp ---- */
+.lvl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;border:1px solid var(--ink);padding:1px 5px;color:var(--ink)}
+.xpbar{width:110px;height:6px;border:1px solid var(--rule-strong);display:inline-block;vertical-align:middle}
+.xpbar i{display:block;height:100%;background:var(--red);width:0;transition:width .45s cubic-bezier(.2,.7,.2,1)}
+.xpnum{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--muted)}
+.course-complete{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--green);border:1px solid var(--green);padding:1px 5px;transform:rotate(-2deg);display:inline-block}
+/* ---- lesson ---- */
+.lesson h2{font-family:var(--serif);font-size:27px;line-height:1.22;font-weight:700;margin-bottom:8px}
+.lesson .lede{font-size:16px;line-height:1.8;color:var(--ink-2);margin:6px 0 4px}
+.lesson-sec{margin-top:22px}
+.lesson-sec h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-deep);margin-bottom:6px}
+.lesson-sec p{font-size:15px;line-height:1.82;color:var(--ink-2)}
+.lesson-code{font-family:var(--mono);font-size:12.5px;line-height:1.65;background:var(--console);color:var(--code);padding:12px 14px;overflow-x:auto;white-space:pre;margin-top:10px;border-left:3px solid var(--red)}
+.key-idea{border:1px solid var(--ink);border-left:4px solid var(--red);padding:12px 14px;margin-top:24px;background:rgba(192,58,27,.045)}
+.key-idea span{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--red)}
+.key-idea p{margin-top:5px;font-size:14px;line-height:1.7}
+.lesson-practice{margin-top:14px;font-size:13px;color:var(--muted);font-style:italic}
+.lesson-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;align-items:center}
+.lesson-next{margin-top:20px;border-top:1px solid var(--rule);padding-top:14px}
+.btn[disabled]{opacity:.55;cursor:default;background:transparent;color:var(--muted);border-color:var(--rule-strong);box-shadow:none;transform:none}
+.btn[disabled]:hover{background:transparent;color:var(--muted)}
+body.boot .chapter{animation:rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 60ms)}
+body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){
+  body.boot .chapter,body.boot .content>.panel{animation:none}
+  .course-item::before{transition:none}
+  .xpbar i{transition:none}
+}
+@media (max-width:860px){
+  .sidebar{position:static;max-height:260px;overflow:auto;width:100%;flex:none;padding-right:0;border-bottom:1px solid var(--rule);padding-bottom:8px}
+  .lesson h2{font-size:22px}
+  .lesson .lede{font-size:15px}
+  .xpbar{width:80px}
+}
+
+</style>
+</head>
+<body class="boot">
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-row">
+      <h1><span id="brandWord">REPO GYM</span></h1>
+      <span class="issue">LAB 03</span>
+    </div>
+    <div class="tagline">把真实开源仓库变成可判分的编程练习</div>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+<main class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <section class="content" id="content"></section>
+</main>
+<footer class="footer">Built with AutoClaw · 数据来源 validator.js（MIT，commit 9ff3424）· 仅用于教学演示</footer>
+<iframe id="runner" sandbox="allow-scripts" title="测试运行沙箱"></iframe>
+
+<script type="text/plain" id="runner-src">
+(function () {
+  function post(m) { try { m.run = DATA.run; parent.postMessage(m, '*'); } catch (e) {} }
+  var tests = DATA.tests || [];
+  var results = [];
+  function fmt(v) {
+    if (v === undefined) return 'undefined';
+    if (typeof v === 'string') return JSON.stringify(v);
+    try { return String(v); } catch (e) { return Object.prototype.toString.call(v); }
+  }
+  function report(i, v, thrown) {
+    if (thrown) {
+      results[i] = { name: tests[i].name, pass: false,
+        error: (v && v.name) ? (v.name + ': ' + (v.message || v)) : String(v) };
+    } else if (v === true) {
+      results[i] = { name: tests[i].name, pass: true, error: '' };
+    } else {
+      results[i] = { name: tests[i].name, pass: false,
+        error: '断言未通过：表达式返回 ' + fmt(v) + '，应为 true' };
+    }
+  }
+  var body = String(DATA.code == null ? '' : DATA.code) + '\n;\n';
+  for (var i = 0; i < tests.length; i++) {
+    body += 'try { __report(' + i + ', eval(' + JSON.stringify(String(tests[i].expr)) + ')); }' +
+            ' catch (e) { __report(' + i + ', e, true); }\n';
+  }
+  var fn;
+  try {
+    fn = new Function('__report', body);
+  } catch (e) {
+    post({ type: 'parse', error: ((e && e.name) || 'SyntaxError') + ': ' + ((e && e.message) || String(e)) });
+    return;
+  }
+  try {
+    fn(report);
+  } catch (e) {
+    post({ type: 'runtime', error: ((e && e.name) || 'Error') + ': ' + ((e && e.message) || String(e)) });
+    return;
+  }
+  if (results.length < tests.length) {
+    post({ type: 'runtime', error: '代码提前中断（例如顶层 return），测试未全部执行' });
+    return;
+  }
+  post({ type: 'done', results: results });
+})();
+</script>
+<script src="data.js"></script>
+<script>
+(function () {
+'use strict';
+
+var EXERCISES = window.EXERCISES || [];
+var CURRICULUM = window.CURRICULUM || { chapters: [] };
+var COURSE = CURRICULUM.course || {};
+var CHAPTERS = CURRICULUM.chapters || [];
+var STORE_KEY = 'js-exercise-site-v1';
+var TYPE_LABEL = { fillin: '填空', bugfix: '缺陷修复', feature: '新功能', project: '毕业项目' };
+var DIFF_LABEL = { easy: '简单', medium: '中等', hard: '困难' };
+var XP_DIFF = { easy: 10, medium: 20, hard: 30 };
+var XP_PROJECT = 50;
+var XP_LESSON = 15;
+var LEVEL_TITLES = COURSE.levelTitles || ['Newcomer', 'Apprentice', 'Practitioner', 'Engineer', 'Maintainer'];
+var LEVEL_STEPS = COURSE.levelSteps || [0, 50, 110, 160, 200];
+var RUN_TIMEOUT = 10000;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function byId(id) {
+  for (var i = 0; i < EXERCISES.length; i++) if (EXERCISES[i].id === id) return EXERCISES[i];
+  return null;
+}
+function indexOfEx(id) {
+  for (var i = 0; i < EXERCISES.length; i++) if (EXERCISES[i].id === id) return i;
+  return -1;
+}
+function chapterById(id) {
+  for (var i = 0; i < CHAPTERS.length; i++) if (CHAPTERS[i].id === id) return CHAPTERS[i];
+  return null;
+}
+function chapterOfExercise(id) {
+  for (var i = 0; i < CHAPTERS.length; i++) {
+    if (CHAPTERS[i].exerciseIds.indexOf(id) !== -1) return { chapter: CHAPTERS[i], index: i };
+  }
+  return null;
+}
+function nextChapter(id) {
+  for (var i = 0; i < CHAPTERS.length; i++) if (CHAPTERS[i].id === id) return CHAPTERS[i + 1] || null;
+  return null;
+}
+function typeLabel(t) { return TYPE_LABEL[t] || t; }
+function diffLabel(d) { return DIFF_LABEL[d] || d; }
+function xpFor(ex) { return ex.type === 'project' ? XP_PROJECT : (XP_DIFF[ex.difficulty] || 20); }
+function lessonRead(id) { return !!state.lessons[id]; }
+
+function loadState() {
+  var s = null;
+  try { s = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+  if (!s || typeof s !== 'object' || !s.data || typeof s.data !== 'object') s = { data: {} };
+  if (!s.lessons || typeof s.lessons !== 'object') s.lessons = {};
+  if (!s.lastView && s.lastId) s.lastView = { type: 'exercise', id: s.lastId };
+  return s;
+}
+var state = loadState();
+function persist() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function exState(id) {
+  if (!state.data[id]) state.data[id] = { done: false, code: null };
+  return state.data[id];
+}
+
+var $sidebar = document.getElementById('sidebar');
+var $content = document.getElementById('content');
+var $progress = document.getElementById('progress');
+var $runner = document.getElementById('runner');
+var RUNNER_SRC = document.getElementById('runner-src').textContent;
+
+var currentView = null;
+var currentId = null;
+var watchdog = null;
+var runToken = 0;
+var saveTimer = null;
+
+function currentViewIs(type, id) {
+  return !!(currentView && currentView.type === type && currentView.id === id);
+}
+
+function levelInfo(xp) {
+  var level = 0;
+  for (var i = 0; i < LEVEL_STEPS.length; i++) if (xp >= LEVEL_STEPS[i]) level = i;
+  var base = LEVEL_STEPS[level];
+  var next = LEVEL_STEPS[level + 1];
+  var pct = next == null ? 1 : Math.max(0, Math.min(1, (xp - base) / (next - base)));
+  return { level: level, title: LEVEL_TITLES[level] || ('Level ' + (level + 1)), next: next, pct: pct };
+}
+
+function courseStats() {
+  var xp = 0, done = 0, total = 0;
+  for (var i = 0; i < CHAPTERS.length; i++) {
+    var ch = CHAPTERS[i];
+    total += 1 + ch.exerciseIds.length;
+    if (lessonRead(ch.id)) { xp += XP_LESSON; done++; }
+    for (var j = 0; j < ch.exerciseIds.length; j++) {
+      var id = ch.exerciseIds[j];
+      var ex = byId(id);
+      if (!ex) continue;
+      var st = state.data[id];
+      if (st && st.done) { xp += xpFor(ex); done++; }
+    }
+  }
+  return { xp: xp, done: done, total: total, complete: total > 0 && done === total };
+}
+
+function renderProgress() {
+  var s = courseStats();
+  var lv = levelInfo(s.xp);
+  var html = '<span class="lvl">LVL ' + pad(lv.level + 1) + '</span>' +
+    '<span class="xpbar"><i style="width:' + Math.round(lv.pct * 100) + '%"></i></span>' +
+    '<span class="xpnum">' + s.xp + ' XP</span>';
+  if (s.complete) html += '<span class="course-complete">COURSE COMPLETE</span>';
+  $progress.innerHTML = html;
+  $progress.title = lv.title + (s.complete ? ' · course complete' : (lv.next == null ? ' · MAX' : ' · ' + (lv.next - s.xp) + ' XP to next level'));
+}
+
+function renderSidebar() {
+  var s = courseStats();
+  var html = '<div class="side-head"><span>SYLLABUS</span><span>' + pad(s.done) + '/' + pad(s.total) + '</span></div>';
+  for (var i = 0; i < CHAPTERS.length; i++) {
+    var ch = CHAPTERS[i];
+    if (!ch.lesson) ch.lesson = { title: ch.title, minutes: 1, lede: '', sections: [], keyIdea: '', practice: '' };
+    var total = 1 + ch.exerciseIds.length;
+    var done = lessonRead(ch.id) ? 1 : 0;
+    for (var k = 0; k < ch.exerciseIds.length; k++) {
+      var st0 = state.data[ch.exerciseIds[k]];
+      if (st0 && st0.done) done++;
+    }
+    html += '<section class="chapter" style="--i:' + i + '">' +
+      '<div class="ch-head"><span class="ch-num">' + esc(ch.number) + '</span>' +
+      '<span class="ch-title">' + esc(ch.title) + '<em>' + esc(ch.subtitle || '') + '</em></span>' +
+      '<span class="ch-prog">' + done + '/' + total + '</span></div>' +
+      '<ul class="ch-items">';
+    html += '<li class="course-item lesson' +
+      (currentViewIs('lesson', ch.id) ? ' on' : '') +
+      (lessonRead(ch.id) ? ' done read' : '') +
+      '" data-kind="lesson" data-id="' + esc(ch.id) + '" tabindex="0" title="' + esc(ch.lesson.title) + '">' +
+      '<span class="ci-mark">§</span><span class="ci-title">' + esc(ch.lesson.title) + '</span>' +
+      (lessonRead(ch.id) ? '<span class="ci-done">READ</span>' : '') +
+      '</li>';
+    for (var j = 0; j < ch.exerciseIds.length; j++) {
+      var id = ch.exerciseIds[j];
+      var ex = byId(id);
+      if (!ex) continue;
+      var st = state.data[id] || {};
+      html += '<li class="course-item ex' +
+        (currentViewIs('exercise', id) ? ' on' : '') +
+        (st.done ? ' done' : '') +
+        '" data-kind="exercise" data-id="' + esc(id) + '" tabindex="0" title="' + esc(ex.title) + '">' +
+        '<span class="ci-mark">' + pad(j + 1) + '</span>' +
+        '<span class="ci-title">' + esc(ex.title) + '</span>' +
+        '<span class="ci-badge">' + esc(typeLabel(ex.type)) + '</span>' +
+        (st.done ? '<span class="stamp">PASS</span>' : '') +
+        '</li>';
+    }
+    html += '</ul></section>';
+  }
+  $sidebar.innerHTML = html;
+}
+
+function revealActive() {
+  var active = $sidebar.querySelector('.course-item.on');
+  if (!active) return;
+  try { active.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+}
+
+function openLesson(id) {
+  var ch = chapterById(id);
+  if (!ch) return;
+  saveCurrentCode();
+  clearTimeout(watchdog);
+  runToken++;
+  currentView = { type: 'lesson', id: id };
+  currentId = null;
+  state.lastView = currentView;
+  persist();
+  renderSidebar();
+  renderLesson(ch);
+  renderProgress();
+  revealActive();
+}
+
+function openExercise(id) {
+  var ex = byId(id);
+  if (!ex) return;
+  saveCurrentCode();
+  clearTimeout(watchdog);
+  runToken++;
+  currentView = { type: 'exercise', id: id };
+  currentId = id;
+  state.lastView = currentView;
+  persist();
+  renderSidebar();
+  renderDetail();
+  renderProgress();
+  revealActive();
+}
+
+function renderLesson(ch) {
+  var read = lessonRead(ch.id);
+  var secs = (ch.lesson.sections || []).map(function (sec) {
+    return '<section class="lesson-sec"><h3>' + esc(sec.h) + '</h3><p>' + esc(sec.p) + '</p>' +
+      (sec.code ? '<pre class="lesson-code">' + esc(sec.code) + '</pre>' : '') +
+      '</section>';
+  }).join('');
+  var next = nextChapter(ch.id);
+  var html = '<div class="panel lesson">' +
+    '<div class="eyebrow"><span>CHAPTER ' + esc(ch.number) + ' · LESSON</span><span>' +
+      (ch.lesson.minutes || 5) + ' MIN READ' + (read ? ' · READ' : '') + '</span></div>' +
+    '<h2>' + esc(ch.lesson.title) + '</h2>' +
+    (ch.lesson.lede ? '<p class="lede">' + esc(ch.lesson.lede) + '</p>' : '') +
+    secs +
+    (ch.lesson.keyIdea ? '<div class="key-idea"><span>KEY IDEA</span><p>' + esc(ch.lesson.keyIdea) + '</p></div>' : '') +
+    (ch.lesson.practice ? '<p class="lesson-practice">练习提示：' + esc(ch.lesson.practice) + '</p>' : '') +
+    '<div class="lesson-actions">' +
+      '<button type="button" class="btn primary" id="btnRead"' + (read ? ' disabled' : '') + '>' +
+        (read ? '已读 ✓' : '标记已读 +' + XP_LESSON + ' XP') + '</button>' +
+      '<button type="button" class="btn" id="btnPractice">去做本章练习 →</button>' +
+    '</div>' +
+    (next ? '<div class="lesson-next"><button type="button" class="btn" id="btnNext">下一章：' + esc(next.title) + ' →</button></div>' : '') +
+    '</div>';
+  $content.innerHTML = html;
+
+  var btnRead = document.getElementById('btnRead');
+  if (btnRead) btnRead.addEventListener('click', function () {
+    if (lessonRead(ch.id)) return;
+    state.lessons[ch.id] = true;
+    persist();
+    renderSidebar();
+    renderProgress();
+    renderLesson(ch);
+    revealActive();
+  });
+  var btnPractice = document.getElementById('btnPractice');
+  if (btnPractice) btnPractice.addEventListener('click', function () {
+    if (ch.exerciseIds[0]) openExercise(ch.exerciseIds[0]);
+  });
+  var btnNext = document.getElementById('btnNext');
+  if (btnNext) btnNext.addEventListener('click', function () {
+    if (next) openLesson(next.id);
+  });
+}
+
+function saveCurrentCode() {
+  var ed = document.getElementById('editor');
+  if (!ed || !currentId) return;
+  exState(currentId).code = ed.value;
+  persist();
+}
+
+function renderDetail() {
+  var ex = byId(currentId);
+  if (!ex) { $content.innerHTML = '<div class="panel">未找到题目。</div>'; return; }
+  var st = exState(ex.id);
+  var code = (typeof st.code === 'string') ? st.code : (ex.starter_code || '');
+  var tests = ex.tests || [];
+  var chInfo = chapterOfExercise(ex.id);
+  var exNo = indexOfEx(ex.id);
+  $content.innerHTML =
+    '<div class="panel ex-head">' +
+      '<div class="eyebrow"><span>' +
+        (chInfo ? 'CH ' + esc(chInfo.chapter.number) + ' · ' : '') +
+        'EXERCISE ' + pad(exNo + 1) + ' / ' + pad(EXERCISES.length) + '</span>' +
+        '<span>' + esc(typeLabel(ex.type)) + ' · ' + esc(diffLabel(ex.difficulty)) +
+        (st.done ? ' <em class="pass-mark">PASSED</em>' : '') + '</span></div>' +
+      '<h2>' + esc(ex.title) + '</h2>' +
+      (ex.source ? '<div class="ex-meta">SOURCE ' + esc(ex.source) + (ex.entry ? ' · ENTRY ' + esc(ex.entry) : '') + '</div>' : '') +
+      '<div class="desc">' + esc(ex.description || '') + '</div>' +
+    '</div>' +
+    '<div class="panel">' +
+      '<div class="toolbar">' +
+        '<button type="button" class="btn primary" id="btnRun">运行测试</button>' +
+        '<button type="button" class="btn" id="btnReset">重置</button>' +
+        '<button type="button" class="btn" id="btnHint">提示</button>' +
+        '<button type="button" class="btn" id="btnRef">参考答案</button>' +
+      '</div>' +
+      '<div class="sub"><div class="console">' +
+        '<div class="console-bar"><span class="dot"></span><span class="fname">' + esc(ex.id) + '.js</span>' +
+        '<span class="entry">entry: ' + esc(ex.entry || '') + '</span></div>' +
+        '<textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" wrap="off" aria-label="代码编辑器"></textarea>' +
+      '</div></div>' +
+      '<div class="sub hidden" id="hintBox"><h4>提示</h4>' +
+        (ex.hints && ex.hints.length
+          ? ex.hints.map(function (h, i) { return '<div class="hint-item">' + (i + 1) + '. ' + esc(h) + '</div>'; }).join('')
+          : '<div class="hint-item">本题暂无提示。</div>') +
+      '</div>' +
+      '<div class="sub hidden" id="refBox"><h4>参考答案</h4><pre class="refcode"></pre>' +
+        (ex.explanation ? '<h4>解析</h4><div class="explain"></div>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="panel"><div class="eyebrow"><span>TEST LOG</span><span>' + tests.length + ' CASES</span></div>' +
+      '<div class="results" id="results"><div class="rstatus">点击「运行测试」验证你的代码。</div></div></div>';
+
+  var editor = document.getElementById('editor');
+  editor.value = code;
+  var refPre = $content.querySelector('.refcode');
+  if (refPre) refPre.textContent = ex.reference_solution || '';
+  var explainEl = $content.querySelector('.explain');
+  if (explainEl) explainEl.textContent = ex.explanation || '';
+
+  document.getElementById('btnRun').addEventListener('click', runTests);
+  document.getElementById('btnReset').addEventListener('click', resetCode);
+  document.getElementById('btnHint').addEventListener('click', function () {
+    document.getElementById('hintBox').classList.toggle('hidden');
+  });
+  document.getElementById('btnRef').addEventListener('click', toggleRef);
+  editor.addEventListener('keydown', onTabKey);
+  editor.addEventListener('input', function () {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveCurrentCode, 300);
+  });
+}
+
+function onTabKey(e) {
+  if (e.key !== 'Tab') return;
+  e.preventDefault();
+  var ed = e.target;
+  var s = ed.selectionStart, t = ed.selectionEnd;
+  ed.value = ed.value.slice(0, s) + '  ' + ed.value.slice(t);
+  ed.selectionStart = ed.selectionEnd = s + 2;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveCurrentCode, 300);
+}
+
+function toggleRef() {
+  var box = document.getElementById('refBox');
+  if (!box) return;
+  if (box.classList.contains('hidden')) {
+    if (window.confirm('确定要查看参考答案吗？建议先自己完成本题再看答案。')) {
+      box.classList.remove('hidden');
+    }
+  } else {
+    box.classList.add('hidden');
+  }
+}
+
+function resetCode() {
+  var ex = byId(currentId);
+  var ed = document.getElementById('editor');
+  if (!ex || !ed) return;
+  if (!window.confirm('确定要重置本题代码为初始状态吗？当前编辑的代码将丢失。')) return;
+  ed.value = ex.starter_code || '';
+  exState(ex.id).code = null;
+  persist();
+  var results = document.getElementById('results');
+  if (results) results.innerHTML = '<div class="rstatus">代码已重置为初始状态，点击「运行测试」重新验证。</div>';
+}
+
+function runTests() {
+  var ex = byId(currentId);
+  var ed = document.getElementById('editor');
+  if (!ex || !ed) return;
+  saveCurrentCode();
+  var results = document.getElementById('results');
+  results.innerHTML = '<div class="rstatus">运行中…</div>';
+  var payload = JSON.stringify({ run: currentId, code: ed.value, tests: ex.tests || [] })
+    .replace(/</g, '\u003c')
+    .replace(/\u2028/g, '\u2028')
+    .replace(/\u2029/g, '\u2029');
+  var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><!--run ' + (++runToken) + '--></head><body><script>var DATA = ' + payload + ';\n' +
+    RUNNER_SRC + '\n<\/script></body></html>';
+  clearTimeout(watchdog);
+  var token = runToken;
+  watchdog = setTimeout(function () {
+    if (token !== runToken) return;
+    var r = document.getElementById('results');
+    if (r) r.innerHTML = '<div class="errbox"><div class="t">测试运行超时</div><div class="m">代码可能存在死循环，请检查后重试。</div></div>';
+  }, RUN_TIMEOUT);
+  $runner.srcdoc = doc;
+}
+
+window.addEventListener('message', function (e) {
+  if (e.source !== $runner.contentWindow) return;
+  var m = e.data;
+  if (!m || typeof m !== 'object' || typeof m.run !== 'string') return;
+  if (m.run !== currentId) return;
+  var results = document.getElementById('results');
+  if (!results) return;
+  clearTimeout(watchdog);
+  if (m.type === 'parse') {
+    results.innerHTML = '<div class="errbox"><div class="t">代码无法解析</div><div class="m">' + esc(m.error || '未知语法错误') + '</div></div>';
+  } else if (m.type === 'runtime') {
+    results.innerHTML = '<div class="errbox"><div class="t">代码运行出错</div><div class="m">' + esc(m.error || '未知错误') + '</div></div>';
+  } else if (m.type === 'done') {
+    renderResults(m.results || []);
+  }
+});
+
+function renderResults(results) {
+  var ex = byId(currentId);
+  var el = document.getElementById('results');
+  var passCount = 0;
+  var html = '';
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    if (r.pass) passCount++;
+    html += '<div class="case"><div class="cl"><span class="mark ' + (r.pass ? 'ok' : 'bad') + '">' +
+      (r.pass ? '✓' : '✗') + '</span>' +
+      '<span class="cname">' + esc(r.name) + '</span></div>' +
+      (r.error ? '<div class="cerr">' + esc(r.error) + '</div>' : '') + '</div>';
+  }
+  var allPass = results.length > 0 && passCount === results.length;
+  var head = allPass
+    ? '<div class="rstatus allpass">全部 ' + results.length + ' 条通过 · 本题完成</div>'
+    : '<div class="rstatus">通过 ' + passCount + ' / ' + results.length + ' 条用例</div>';
+  el.innerHTML = head + html;
+  if (ex) {
+    var st = exState(ex.id);
+    st.done = allPass || st.done;
+    persist();
+  }
+  var isDone = ex ? exState(ex.id).done : false;
+  var eyebrow = document.querySelector('.ex-head .eyebrow');
+  if (eyebrow) {
+    var mark = eyebrow.querySelector('.pass-mark');
+    if (isDone && !mark) {
+      var em = document.createElement('em');
+      em.className = 'pass-mark';
+      em.textContent = 'PASSED';
+      var last = eyebrow.lastElementChild;
+      last.appendChild(document.createTextNode(' '));
+      last.appendChild(em);
+    } else if (!isDone && mark) {
+      mark.remove();
+    }
+  }
+  renderProgress();
+  renderSidebar();
+  revealActive();
+}
+
+window.addEventListener('beforeunload', saveCurrentCode);
+
+$sidebar.addEventListener('click', function (e) {
+  var item = e.target.closest('.course-item');
+  if (!item) return;
+  var kind = item.getAttribute('data-kind');
+  var id = item.getAttribute('data-id');
+  if (kind === 'lesson') openLesson(id);
+  else if (kind === 'exercise') openExercise(id);
+});
+
+$sidebar.addEventListener('pointermove', function (e) {
+  var item = e.target.closest('.course-item');
+  if (!item) return;
+  var r = item.getBoundingClientRect();
+  item.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+  item.style.setProperty('--my', (e.clientY - r.top) + 'px');
+});
+
+$sidebar.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var item = e.target.closest('.course-item');
+  if (!item) return;
+  e.preventDefault();
+  var kind = item.getAttribute('data-kind');
+  var id = item.getAttribute('data-id');
+  if (kind === 'lesson') openLesson(id);
+  else if (kind === 'exercise') openExercise(id);
+});
+
+function decryptWord(el, text, duration) {
+  if (!el) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { el.textContent = text; return; }
+  var glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&*+=?/';
+  var start = performance.now();
+  function tick(now) {
+    var t = Math.min(1, (now - start) / duration);
+    var out = '';
+    for (var i = 0; i < text.length; i++) {
+      if (text.charAt(i) === ' ') { out += ' '; continue; }
+      var reveal = (i / text.length) * 0.55;
+      out += (t > reveal + 0.35) ? text.charAt(i) : glyphs.charAt(Math.floor(Math.random() * glyphs.length));
+    }
+    el.textContent = out;
+    if (t < 1) requestAnimationFrame(tick); else el.textContent = text;
+  }
+  requestAnimationFrame(tick);
+}
+
+function init() {
+  if (!EXERCISES.length) {
+    $content.innerHTML = '<div class="panel">未加载到题目数据：请确认 data.js 与 index.html 位于同一目录。</div>';
+    return;
+  }
+  if (!CHAPTERS.length) {
+    CHAPTERS = [{
+      id: 'all', number: '01', title: '全部练习', subtitle: '',
+      lesson: { title: '练习清单', minutes: 1, lede: '直接从第一题开始。', sections: [], keyIdea: '', practice: '' },
+      exerciseIds: EXERCISES.map(function (e) { return e.id; })
+    }];
+    renderSidebar();
+    renderProgress();
+    openExercise(EXERCISES[0].id);
+  } else {
+    renderSidebar();
+    renderProgress();
+    var lv = state.lastView;
+    var valid = lv && ((lv.type === 'lesson' && chapterById(lv.id)) || (lv.type === 'exercise' && byId(lv.id)));
+    if (valid) {
+      if (lv.type === 'lesson') openLesson(lv.id);
+      else openExercise(lv.id);
+    } else {
+      openLesson(CHAPTERS[0].id);
+    }
+  }
+  document.body.classList.add('boot');
+  setTimeout(function () { document.body.classList.remove('boot'); }, 1400);
+  decryptWord(document.getElementById('brandWord'), 'REPO GYM', 850);
+}
+init();
+})();
+
+</script>
+</body>
+</html>
