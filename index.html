@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Repo Gym · JavaScript 练习场</title>
-<noscript><p style="text-align:center;padding:20px;">本站点需要启用 JavaScript 才能使用。</p></noscript>
+<noscript><p style="text-align:center;padding:20px;">本站点需要启用 JavaScript 才能使用。 / This site requires JavaScript.</p></noscript>
 <style>
 :root{
   --paper:#f2eee4;--paper-2:#eae4d6;--ink:#17150f;--ink-2:#3b362b;
@@ -209,7 +209,7 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
   <aside class="sidebar" id="sidebar"></aside>
   <section class="content" id="content"></section>
 </main>
-<footer class="footer">Built with AutoClaw · 数据来源 validator.js（MIT，commit 9ff3424）· 仅用于教学演示</footer>
+<footer class="footer" id="footer">Built with AutoClaw · 数据来源 validator.js（MIT，commit 9ff3424）· 仅用于教学演示</footer>
 <iframe id="runner" sandbox="allow-scripts" title="测试运行沙箱"></iframe>
 
 <script type="text/plain" id="runner-src">
@@ -310,7 +310,10 @@ var I18N = {
     courseComplete: 'COURSE COMPLETE',
     toNext: ' · 距下一级 {xp} XP',
     maxLevel: ' · 已满级',
-    completeSuffix: ' · 课程完成'
+    completeSuffix: ' · 课程完成',
+    footer: 'Built with AutoClaw · 数据来源 validator.js（MIT，commit 9ff3424）· 仅用于教学演示',
+    noData: '未加载到题目数据：请确认 data.js 与 index.html 位于同一目录。',
+    notFound: '未找到题目。'
   },
   en: {
     tagline: 'Turn real open-source repos into a graded coding course',
@@ -344,7 +347,10 @@ var I18N = {
     courseComplete: 'COURSE COMPLETE',
     toNext: ' · {xp} XP to next level',
     maxLevel: ' · max level',
-    completeSuffix: ' · course complete'
+    completeSuffix: ' · course complete',
+    footer: 'Built with AutoClaw · Data from validator.js (MIT, commit 9ff3424) · for teaching only',
+    noData: 'Exercise data not loaded: check that data.js sits next to index.html.',
+    notFound: 'Exercise not found.'
   }
 };
 
@@ -516,6 +522,8 @@ function applyChrome() {
     lt.textContent = isEn() ? '中文' : 'EN';
     lt.title = isEn() ? '切换到中文' : 'Switch to English';
   }
+  var footer = document.getElementById('footer');
+  if (footer) footer.textContent = t('footer');
 }
 
 function renderProgress() {
@@ -727,7 +735,7 @@ function saveCurrentCode() {
 
 function renderDetail() {
   var ex = byId(currentId);
-  if (!ex) { $content.innerHTML = '<div class="panel">Not found.</div>'; return; }
+  if (!ex) { $content.innerHTML = '<div class="panel">' + esc(t('notFound')) + '</div>'; return; }
   var st = exState(ex.id);
   var code = (typeof st.code === 'string') ? st.code : (ex.starter_code || '');
   var tests = ex.tests || [];
@@ -980,7 +988,7 @@ function setLang(next) {
 
 function init() {
   if (!EXERCISES.length) {
-    $content.innerHTML = '<div class="panel">Exercise data not loaded: check that data.js sits next to index.html.</div>';
+    $content.innerHTML = '<div class="panel">' + esc(t('noData')) + '</div>';
     return;
   }
   applyChrome();
