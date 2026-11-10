@@ -250,6 +250,31 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 
 .kb-item .mini{white-space:nowrap;flex:none}
 
+.tutor-menu{background:transparent;border:1px solid var(--ink);font-family:var(--mono);font-size:12px;width:24px;height:24px;cursor:pointer;line-height:1;flex:none}
+.tutor-menu:hover{background:var(--ink);color:var(--paper)}
+.tutor-head-main{flex:1;min-width:0}
+.tutor-body{position:relative;display:flex;flex:1;min-height:0}
+.tutor-side{position:absolute;top:0;left:0;bottom:0;width:190px;z-index:3;display:none;flex-direction:column;gap:3px;padding:10px;overflow:auto;background:var(--paper-2);border-right:1px solid var(--ink);box-shadow:4px 0 0 rgba(23,21,15,.12)}
+.tutor.side-open .tutor-side{display:flex}
+.side-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted);margin:6px 0 3px}
+.side-item{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:1px solid transparent;color:var(--ink);font-family:var(--mono);font-size:10px;letter-spacing:.04em;padding:6px 7px;cursor:pointer;text-align:left}
+.side-item:hover{background:var(--paper);border-color:var(--rule-strong)}
+.side-recent{display:flex;flex-direction:column;gap:2px}
+.side-recent button{background:transparent;border:0;border-bottom:1px dotted var(--rule);color:var(--muted);font-family:var(--mono);font-size:9.5px;line-height:1.4;padding:5px 4px;text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-recent button:hover{color:var(--ink)}
+.side-empty{font-size:11px;color:var(--muted);padding:4px}
+.tutor-main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.msg-menu{position:absolute;z-index:6;width:156px;background:#1f1d16;border:1px solid #0b0a07;box-shadow:4px 4px 0 rgba(0,0,0,.25);padding:4px 0}
+.msg-menu[hidden]{display:none}
+.msg-menu button{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;border-bottom:1px solid #343026;color:#e9e3d5;font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:9px 12px;cursor:pointer;text-align:left}
+.msg-menu button:last-child{border-bottom:0}
+.msg-menu button:hover{background:rgba(192,58,27,.28)}
+.msg-menu .ico{width:16px;text-align:center;color:#c03a1b}
+@media (max-width:860px){
+  .tutor-side{width:200px}
+  .msg-menu{width:150px}
+}
+
 </style>
 </head>
 <body class="boot">
@@ -272,20 +297,34 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 <button type="button" class="ask-btn" id="askBtn" aria-controls="tutorPanel" aria-expanded="false">ASK</button>
 <section class="tutor" id="tutorPanel" hidden aria-label="Course tutor">
   <div class="tutor-head">
-    <div><strong>ASK REPO GYM</strong><span class="tutor-context" id="tutorContext"></span></div>
+    <button type="button" class="tutor-menu" id="tutorMenuBtn" aria-label="Menu">☰</button>
+    <div class="tutor-head-main"><strong>ASK REPO GYM</strong><span class="tutor-context" id="tutorContext"></span></div>
     <div class="tutor-head-actions">
       <button type="button" class="tutor-kb" id="kbBtn">NOTES</button>
       <button type="button" class="tutor-close" id="tutorClose" aria-label="Close">×</button>
     </div>
   </div>
-  <div class="tutor-log" id="tutorLog" aria-live="polite"></div>
-  <div class="tutor-chips" id="tutorChips"></div>
-  <form class="tutor-form" id="tutorForm">
-    <input id="tutorInput" type="text" autocomplete="off" placeholder="Ask something…" aria-label="Ask the course tutor">
-    <button type="button" class="icon-btn" id="tutorMic" title="Voice input">MIC</button>
-    <button type="submit" class="btn primary" id="tutorSend">Send</button>
-  </form>
-  <div class="tutor-note" id="tutorNote"></div>
+  <div class="tutor-body">
+    <aside class="tutor-side" id="tutorSide">
+      <div class="side-title" id="sideMenuTitle">MENU</div>
+      <button type="button" class="side-item" data-side="course" id="sideCourse">Course</button>
+      <button type="button" class="side-item" data-side="notes" id="sideNotes">Notes</button>
+      <button type="button" class="side-item" data-side="new" id="sideNew">New chat</button>
+      <div class="side-title" id="sideRecentTitle">RECENT</div>
+      <div class="side-recent" id="sideRecent"></div>
+    </aside>
+    <div class="tutor-main">
+      <div class="tutor-log" id="tutorLog" aria-live="polite"></div>
+      <div class="tutor-chips" id="tutorChips"></div>
+      <form class="tutor-form" id="tutorForm">
+        <input id="tutorInput" type="text" autocomplete="off" placeholder="Ask something…" aria-label="Ask the course tutor">
+        <button type="button" class="icon-btn" id="tutorMic" title="Voice input">MIC</button>
+        <button type="submit" class="btn primary" id="tutorSend">Send</button>
+      </form>
+      <div class="tutor-note" id="tutorNote"></div>
+    </div>
+  </div>
+  <div class="msg-menu" id="msgMenu" hidden></div>
 </section>
 <div class="kb-modal" id="kbModal" hidden>
   <div class="kb-card">
@@ -440,7 +479,18 @@ var I18N = {
     kbAdded: '已添加 {n} 份资料，共 {c} 个片段。现在可以问我相关问题。',
     kbQuota: '浏览器存储已满，资料只在本次会话有效。',
     kbDelete: '删除',
-    kbConfirmClear: '确定清空全部资料？'
+    kbConfirmClear: '确定清空全部资料？',
+    sideMenu: '菜单',
+    sideCourse: '课程',
+    sideNotes: '资料',
+    sideNew: '新对话',
+    sideRecent: '最近提问',
+    sideNoRecent: '还没有提问。',
+    menuCopy: '复制',
+    menuSelect: '选择文本',
+    menuEdit: '修改',
+    menuCopied: '已复制',
+    tutorMenu: '菜单'
   },
   en: {
     tagline: 'Turn real open-source repos into a graded coding course',
@@ -512,7 +562,18 @@ var I18N = {
     kbAdded: 'Added {n} document(s) with {c} chunks. Ask me about them.',
     kbQuota: 'Browser storage is full; notes are kept for this session only.',
     kbDelete: 'Delete',
-    kbConfirmClear: 'Delete all notes?'
+    kbConfirmClear: 'Delete all notes?',
+    sideMenu: 'MENU',
+    sideCourse: 'Course',
+    sideNotes: 'Notes',
+    sideNew: 'New chat',
+    sideRecent: 'RECENT',
+    sideNoRecent: 'No recent questions.',
+    menuCopy: 'Copy',
+    menuSelect: 'Select text',
+    menuEdit: 'Edit',
+    menuCopied: 'Copied',
+    tutorMenu: 'Menu'
   }
 };
 
@@ -713,6 +774,19 @@ function applyChrome() {
   var kbNote = document.getElementById('kbNote');
   if (kbNote) kbNote.textContent = t('kbStored');
   if (document.getElementById('kbList')) kbRender();
+  var sideMenuTitle = document.getElementById('sideMenuTitle');
+  if (sideMenuTitle) sideMenuTitle.textContent = t('sideMenu');
+  var sideCourse = document.getElementById('sideCourse');
+  if (sideCourse) sideCourse.textContent = t('sideCourse');
+  var sideNotes = document.getElementById('sideNotes');
+  if (sideNotes) sideNotes.textContent = t('sideNotes');
+  var sideNew = document.getElementById('sideNew');
+  if (sideNew) sideNew.textContent = t('sideNew');
+  var sideRecentTitle = document.getElementById('sideRecentTitle');
+  if (sideRecentTitle) sideRecentTitle.textContent = t('sideRecent');
+  var tutorMenuBtn = document.getElementById('tutorMenuBtn');
+  if (tutorMenuBtn) tutorMenuBtn.title = t('tutorMenu');
+  renderTutorSide();
 }
 
 function renderProgress() {
@@ -1689,10 +1763,180 @@ function tutorAppend(role, text, opts) {
   log.scrollTop = log.scrollHeight;
 }
 
+
+var tutorHistory = [];
+var msgMenuTarget = null;
+
+function renderTutorSide() {
+  var recent = document.getElementById('sideRecent');
+  if (!recent) return;
+  if (!tutorHistory.length) {
+    recent.innerHTML = '<div class="side-empty">' + esc(t('sideNoRecent')) + '</div>';
+    return;
+  }
+  recent.innerHTML = tutorHistory.map(function (q) {
+    return '<button type="button" data-q="' + esc(q) + '">' + esc(q) + '</button>';
+  }).join('');
+}
+
+function tutorToggleSide() {
+  var panel = document.getElementById('tutorPanel');
+  if (!panel) return;
+  panel.classList.toggle('side-open');
+  renderTutorSide();
+}
+
+function tutorSideAction(kind) {
+  var panel = document.getElementById('tutorPanel');
+  if (kind === 'course') {
+    var ch = tutorCurrentChapter();
+    if (ch) openLesson(ch.id);
+    tutorClosePanel();
+    var side = document.querySelector('.sidebar');
+    if (side) {
+      try { side.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { side.scrollIntoView(); }
+    }
+  } else if (kind === 'notes') {
+    kbOpen();
+  } else if (kind === 'new') {
+    var log = document.getElementById('tutorLog');
+    if (log) log.innerHTML = '';
+    tutorGreeted = false;
+    tutorAppend('assistant', t('tutorGreeting'));
+    tutorGreeted = true;
+  }
+  if (panel) panel.classList.remove('side-open');
+}
+
+function msgMenuHtml(msg) {
+  var isUser = msg.classList.contains('user');
+  return '<button type="button" data-act="copy"><span class="ico">⧉</span>' + esc(t('menuCopy')) + '</button>' +
+    '<button type="button" data-act="select"><span class="ico">I</span>' + esc(t('menuSelect')) + '</button>' +
+    (isUser ? '<button type="button" data-act="edit"><span class="ico">✎</span>' + esc(t('menuEdit')) + '</button>' : '');
+}
+
+function showMsgMenu(msg) {
+  var menu = document.getElementById('msgMenu');
+  var panel = document.getElementById('tutorPanel');
+  if (!menu || !panel || !msg) return;
+  menu.innerHTML = msgMenuHtml(msg);
+  menu.hidden = false;
+  msgMenuTarget = msg;
+  var tr = panel.getBoundingClientRect();
+  var mr = msg.getBoundingClientRect();
+  var mw = menu.offsetWidth || 156;
+  var mh = menu.offsetHeight || 96;
+  var left = mr.left - tr.left;
+  var top = mr.bottom - tr.top + 4;
+  if (left + mw > tr.width - 8) left = tr.width - mw - 8;
+  if (top + mh > tr.height - 8) top = mr.top - tr.top - mh - 4;
+  if (left < 8) left = 8;
+  if (top < 8) top = 8;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+
+function hideMsgMenu() {
+  var menu = document.getElementById('msgMenu');
+  if (menu) menu.hidden = true;
+  msgMenuTarget = null;
+}
+
+function fallbackCopy(text) {
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch (e) {}
+}
+
+function msgMenuAction(act) {
+  if (!msgMenuTarget) return;
+  var body = msgMenuTarget.querySelector('.msg-body');
+  var text = body ? body.innerText : '';
+  if (act === 'copy') {
+    var done = function () {
+      var menu = document.getElementById('msgMenu');
+      var b = menu ? menu.querySelector('[data-act="copy"]') : null;
+      if (b) b.textContent = t('menuCopied');
+      setTimeout(hideMsgMenu, 650);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+    } else {
+      fallbackCopy(text);
+      done();
+    }
+  } else if (act === 'select') {
+    if (body && window.getSelection) {
+      var range = document.createRange();
+      range.selectNodeContents(body);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    hideMsgMenu();
+  } else if (act === 'edit') {
+    if (msgMenuTarget.classList.contains('user')) {
+      var input = document.getElementById('tutorInput');
+      if (input) { input.value = text; input.focus(); }
+    }
+    hideMsgMenu();
+  }
+}
+
+function initMsgMenu() {
+  var log = document.getElementById('tutorLog');
+  var menu = document.getElementById('msgMenu');
+  if (!log || !menu) return;
+  log.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    var msgs = log.querySelectorAll('.msg');
+    var best = null, bestD = 1e9;
+    for (var i = 0; i < msgs.length; i++) {
+      var r = msgs[i].getBoundingClientRect();
+      var dx = Math.max(0, r.left - e.clientX, e.clientX - r.right);
+      var dy = Math.max(0, r.top - e.clientY, e.clientY - r.bottom);
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < bestD) { bestD = d; best = msgs[i]; }
+    }
+    if (best && bestD <= 48) {
+      if (best !== msgMenuTarget) showMsgMenu(best);
+    } else {
+      hideMsgMenu();
+    }
+  });
+  log.addEventListener('scroll', hideMsgMenu, { passive: true });
+  log.addEventListener('touchstart', function (e) {
+    var msg = e.target.closest('.msg');
+    if (msg) showMsgMenu(msg);
+  }, { passive: true });
+  menu.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    if (!b || !msgMenuTarget) return;
+    msgMenuAction(b.getAttribute('data-act'));
+  });
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#msgMenu') || e.target.closest('#tutorLog')) return;
+    hideMsgMenu();
+  });
+}
+
 function tutorSend(q) {
   var text = String(q || '').trim();
   if (!text) return;
   tutorAppend('user', text);
+  if ((tutorHistory[0] || '') !== text) {
+    tutorHistory.unshift(text);
+    tutorHistory = tutorHistory.slice(0, 6);
+  }
+  renderTutorSide();
+  hideMsgMenu();
   var ans = tutorAnswer(text);
   tutorAppend('assistant', ans.text, ans);
 }
@@ -1709,6 +1953,7 @@ function tutorOpenPanel() {
   }
   updateTutorContext();
   renderTutorChips();
+  renderTutorSide();
   var input = document.getElementById('tutorInput');
   if (input) input.focus();
 }
@@ -1719,6 +1964,8 @@ function tutorClosePanel() {
   if (!panel) return;
   panel.hidden = true;
   if (btn) btn.setAttribute('aria-expanded', 'false');
+  hideMsgMenu();
+  panel.classList.remove('side-open');
 }
 
 function tutorResetLanguage() {
@@ -1733,6 +1980,8 @@ function tutorResetLanguage() {
   }
   updateTutorContext();
   renderTutorChips();
+  hideMsgMenu();
+  renderTutorSide();
   if (recognition) recognition.lang = isEn() ? 'en-US' : 'zh-CN';
 }
 
@@ -1810,6 +2059,22 @@ function initTutor() {
       kbRender();
     });
   });
+  var menuBtn = document.getElementById('tutorMenuBtn');
+  if (menuBtn) menuBtn.addEventListener('click', tutorToggleSide);
+  var side = document.getElementById('tutorSide');
+  if (side) side.addEventListener('click', function (e) {
+    var q = e.target.closest('[data-q]');
+    if (q) {
+      var panel = document.getElementById('tutorPanel');
+      tutorSend(q.getAttribute('data-q'));
+      if (panel) panel.classList.remove('side-open');
+      return;
+    }
+    var item = e.target.closest('[data-side]');
+    if (item) tutorSideAction(item.getAttribute('data-side'));
+  });
+  initMsgMenu();
+  renderTutorSide();
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     var modal = document.getElementById('kbModal');

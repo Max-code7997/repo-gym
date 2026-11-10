@@ -32,6 +32,10 @@ A five-chapter mini-course built around real code from [validator.js](https://gi
 
 Click **ASK** in the bottom-right corner. It answers from the lessons, exercises, hints, your last test run and your own notes; it never calls an API. Open **NOTES** to paste or import material — it is chunked and indexed locally with BM25, and answers quote the source. Use **Listen** on an answer to read it aloud. The **MIC** button uses the browser's speech recognition where available (this may use the browser's online service; the rest of the tutor is offline).
 
+Move the pointer near a message to reveal **Copy / Select text / Edit** (there is no Share). The **☰** button opens the tutor menu: Course, Notes, New chat and recent questions.
+
+![Tutor message menu](docs/tutor-menu.png)
+
 ![Offline tutor with local notes](docs/tutor-rag.png)
 
 ## How it was built
