@@ -25,11 +25,14 @@ A five-chapter mini-course built around real code from [validator.js](https://gi
 - Progress, best completion state, XP, lesson reads and editor code are stored in `localStorage`.
 - XP: lesson 15, easy 10, medium 20, hard 30, capstone 50. Five levels, Newcomer → Maintainer.
 - Every lesson and exercise prompt is available in 中文 and English (top-bar toggle). Lessons and prompts can be read aloud with the browser's built-in speech synthesis.
+- A local knowledge base: open **NOTES**, paste or import notes, and the tutor chunks and ranks them with BM25 alongside the course content. Everything stays in `localStorage`; nothing is uploaded.
 - An offline course tutor answers questions about concepts, the current exercise, failing tests and the next item. It uses only the bundled course content — no network, no API key. Read-aloud uses system voices; voice input depends on the browser.
 
 ### Offline tutor
 
-Click **ASK** in the bottom-right corner. It answers from the lessons, exercises, hints and your last test run; it never calls an API. Use **Listen** on an answer to read it aloud. The **MIC** button uses the browser's speech recognition where available (this may use the browser's online service; the rest of the tutor is offline).
+Click **ASK** in the bottom-right corner. It answers from the lessons, exercises, hints, your last test run and your own notes; it never calls an API. Open **NOTES** to paste or import material — it is chunked and indexed locally with BM25, and answers quote the source. Use **Listen** on an answer to read it aloud. The **MIC** button uses the browser's speech recognition where available (this may use the browser's online service; the rest of the tutor is offline).
+
+![Offline tutor with local notes](docs/tutor-rag.png)
 
 ## How it was built
 

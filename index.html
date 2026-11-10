@@ -225,6 +225,31 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
   .tutor-log{max-height:42vh}
 }
 
+.tutor-head-actions{display:flex;align-items:center;gap:6px}
+.tutor-kb{font-family:var(--mono);font-size:9px;letter-spacing:.1em;border:1px solid var(--rule-strong);background:transparent;color:var(--ink);padding:3px 6px;cursor:pointer}
+.tutor-kb:hover{background:var(--ink);color:var(--paper)}
+.kb-modal{position:fixed;inset:0;z-index:50;background:rgba(23,21,15,.42);display:flex;align-items:center;justify-content:center;padding:16px}
+.kb-modal[hidden]{display:none}
+.kb-card{width:min(580px,100%);max-height:82vh;overflow:auto;background:var(--paper);border:1px solid var(--ink);box-shadow:8px 8px 0 rgba(23,21,15,.2);padding:16px}
+.kb-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ink);padding-bottom:8px;margin-bottom:10px}
+.kb-head strong{font-family:var(--mono);font-size:11px;letter-spacing:.14em}
+.kb-desc{font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:10px}
+#kbText{width:100%;min-height:110px;resize:vertical;font-family:var(--mono);font-size:12px;line-height:1.6;padding:10px;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink);margin-bottom:10px}
+#kbText:focus{outline:2px solid var(--red);outline-offset:-2px}
+.kb-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.kb-file{display:inline-flex;align-items:center;cursor:pointer}
+.kb-stats{font-family:var(--mono);font-size:9px;color:var(--muted);margin:6px 0}
+.kb-list{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.kb-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px dotted var(--rule-strong);padding:6px 0}
+.kb-item-main{display:flex;flex-direction:column;gap:1px;min-width:0}
+.kb-item-main strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kb-item-main span{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.kb-empty{font-size:13px;color:var(--muted);padding:8px 0}
+.kb-note{font-family:var(--mono);font-size:9px;line-height:1.5;color:var(--muted);border-top:1px solid var(--rule);padding-top:8px;margin-top:6px}
+@media (max-width:860px){.kb-card{max-height:88vh;padding:12px}}
+
+.kb-item .mini{white-space:nowrap;flex:none}
+
 </style>
 </head>
 <body class="boot">
@@ -248,7 +273,10 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 <section class="tutor" id="tutorPanel" hidden aria-label="Course tutor">
   <div class="tutor-head">
     <div><strong>ASK REPO GYM</strong><span class="tutor-context" id="tutorContext"></span></div>
-    <button type="button" class="tutor-close" id="tutorClose" aria-label="Close">×</button>
+    <div class="tutor-head-actions">
+      <button type="button" class="tutor-kb" id="kbBtn">NOTES</button>
+      <button type="button" class="tutor-close" id="tutorClose" aria-label="Close">×</button>
+    </div>
   </div>
   <div class="tutor-log" id="tutorLog" aria-live="polite"></div>
   <div class="tutor-chips" id="tutorChips"></div>
@@ -259,6 +287,21 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
   </form>
   <div class="tutor-note" id="tutorNote"></div>
 </section>
+<div class="kb-modal" id="kbModal" hidden>
+  <div class="kb-card">
+    <div class="kb-head"><strong id="kbTitle">KNOWLEDGE BASE</strong><button type="button" class="tutor-close" id="kbClose" aria-label="Close">×</button></div>
+    <p class="kb-desc" id="kbDesc">Paste notes, Markdown or text, or import files. Everything stays in this browser; nothing is uploaded.</p>
+    <textarea id="kbText" rows="5" placeholder="Paste notes, Markdown or text…"></textarea>
+    <div class="kb-actions">
+      <label class="btn kb-file" for="kbFile"><span id="kbImportLabel">Import file</span><input id="kbFile" type="file" multiple accept=".txt,.md,.markdown,.json,.csv,.log" hidden></label>
+      <button type="button" class="btn primary" id="kbAdd">Add</button>
+      <button type="button" class="btn" id="kbClear">Clear all</button>
+    </div>
+    <div class="kb-stats" id="kbStats"></div>
+    <div class="kb-list" id="kbList"></div>
+    <div class="kb-note" id="kbNote"></div>
+  </div>
+</div>
 <iframe id="runner" sandbox="allow-scripts" title="测试运行沙箱"></iframe>
 
 <script type="text/plain" id="runner-src">
@@ -367,8 +410,8 @@ var I18N = {
     tutorInputPlaceholder: '问点什么…',
     tutorSend: '发送',
     tutorMic: '语音输入',
-    tutorNote: '回答来自本课程内容，不联网。朗读使用系统语音；语音输入取决于浏览器。',
-    tutorGreeting: '问我关于这门课的概念、当前题的提示，或测试为什么失败。',
+    tutorNote: '回答来自本课程和你的资料，不联网。朗读使用系统语音；语音输入取决于浏览器。',
+    tutorGreeting: '问我课程概念、当前题提示、测试失败原因，或你添加的资料。',
     tutorHelp: '我可以回答：\n• 这门课的概念（Luhn、ISBN、Base64、日期、JSON、口令）\n• 当前题的提示\n• 测试为什么失败\n• 下一项是什么\n\n试试问：Luhn 怎么算？/ 给我一个提示 / 为什么测试失败？',
     tutorNoExercise: '先打开一道练习，我才能给提示。',
     tutorNoRun: '先点「运行测试」，我才能根据失败用例解释。',
@@ -380,11 +423,24 @@ var I18N = {
     tutorNext: '下一项：{title}。',
     tutorSolution: '先试提示；参考答案在题目工具栏的「参考答案」按钮里，需要确认才会展开。',
     tutorNoExample: '这一章没有代码示例。试试问「Luhn 怎么算？」或「Base64 的 padding」。',
-    tutorFallback: '我只能回答这门课里的内容。试试问：Luhn 怎么算？/ Base64 的 padding / 为什么测试失败？',
+    tutorFallback: '我只能回答这门课和你添加的资料。试试问：Luhn 怎么算？/ 为什么测试失败？/ 打开「资料」添加笔记。',
     tutorSource: '来源',
     tutorListen: '朗读',
     tutorOpenAction: '打开',
-    tutorContext: '当前：{title}'
+    tutorContext: '当前：{title}',
+    kbButton: '资料',
+    kbTitle: '知识库',
+    kbDesc: '粘贴笔记、Markdown 或文本，或导入文件。资料只存在本浏览器，不会上传。',
+    kbPlaceholder: '粘贴笔记、Markdown 或文本…',
+    kbAdd: '添加',
+    kbClear: '清空',
+    kbImport: '导入文件',
+    kbEmpty: '还没有资料。',
+    kbStored: '只存在本浏览器，不会上传。回答会引用资料原文。',
+    kbAdded: '已添加 {n} 份资料，共 {c} 个片段。现在可以问我相关问题。',
+    kbQuota: '浏览器存储已满，资料只在本次会话有效。',
+    kbDelete: '删除',
+    kbConfirmClear: '确定清空全部资料？'
   },
   en: {
     tagline: 'Turn real open-source repos into a graded coding course',
@@ -426,8 +482,8 @@ var I18N = {
     tutorInputPlaceholder: 'Ask something…',
     tutorSend: 'Send',
     tutorMic: 'Voice input',
-    tutorNote: 'Answers come from this course; no network. Read-aloud uses system voices; speech input depends on the browser.',
-    tutorGreeting: 'Ask me about a concept, a hint for this exercise, or why a test failed.',
+    tutorNote: 'Answers come from this course and your notes; no network. Read-aloud uses system voices; speech input depends on the browser.',
+    tutorGreeting: 'Ask me about the course, a hint for this exercise, why a test failed, or your notes.',
     tutorHelp: 'I can answer:\n• concepts from this course (Luhn, ISBN, Base64, dates, JSON, passwords)\n• hints for the current exercise\n• why tests failed\n• what comes next\n\nTry: How does Luhn work? / Give me a hint / Why did my test fail?',
     tutorNoExercise: 'Open an exercise first and I can give hints.',
     tutorNoRun: 'Run the tests first and I can explain the failures.',
@@ -439,11 +495,24 @@ var I18N = {
     tutorNext: 'Next up: {title}.',
     tutorSolution: 'Try the hints first; the reference solution is behind the Reference button in the exercise toolbar.',
     tutorNoExample: 'This chapter has no code snippet. Try “How does Luhn work?” or “Base64 padding”.',
-    tutorFallback: 'I answer from this course only. Try: How does Luhn work? / Base64 padding / Why did my test fail?',
+    tutorFallback: 'I answer from this course and your notes. Try: How does Luhn work? / Why did my test fail? / Open NOTES to add some.',
     tutorSource: 'Source',
     tutorListen: 'Listen',
     tutorOpenAction: 'Open',
-    tutorContext: 'Context: {title}'
+    tutorContext: 'Context: {title}',
+    kbButton: 'NOTES',
+    kbTitle: 'KNOWLEDGE BASE',
+    kbDesc: 'Paste notes, Markdown or text, or import files. Everything stays in this browser; nothing is uploaded.',
+    kbPlaceholder: 'Paste notes, Markdown or text…',
+    kbAdd: 'Add',
+    kbClear: 'Clear all',
+    kbImport: 'Import file',
+    kbEmpty: 'No notes yet.',
+    kbStored: 'Stored in this browser only; never uploaded. Answers quote your notes.',
+    kbAdded: 'Added {n} document(s) with {c} chunks. Ask me about them.',
+    kbQuota: 'Browser storage is full; notes are kept for this session only.',
+    kbDelete: 'Delete',
+    kbConfirmClear: 'Delete all notes?'
   }
 };
 
@@ -627,6 +696,23 @@ function applyChrome() {
   if (tnote) tnote.textContent = t('tutorNote');
   var tmic = document.getElementById('tutorMic');
   if (tmic) tmic.title = t('tutorMic');
+  var kbBtn = document.getElementById('kbBtn');
+  if (kbBtn) kbBtn.textContent = t('kbButton');
+  var kbTitle = document.getElementById('kbTitle');
+  if (kbTitle) kbTitle.textContent = t('kbTitle');
+  var kbDesc = document.getElementById('kbDesc');
+  if (kbDesc) kbDesc.textContent = t('kbDesc');
+  var kbText = document.getElementById('kbText');
+  if (kbText) kbText.placeholder = t('kbPlaceholder');
+  var kbAdd = document.getElementById('kbAdd');
+  if (kbAdd) kbAdd.textContent = t('kbAdd');
+  var kbClear = document.getElementById('kbClear');
+  if (kbClear) kbClear.textContent = t('kbClear');
+  var kbImport = document.getElementById('kbImportLabel');
+  if (kbImport) kbImport.textContent = t('kbImport');
+  var kbNote = document.getElementById('kbNote');
+  if (kbNote) kbNote.textContent = t('kbStored');
+  if (document.getElementById('kbList')) kbRender();
 }
 
 function renderProgress() {
@@ -1133,6 +1219,185 @@ function tutorCurrentChapter() {
   return null;
 }
 
+
+/* ---------------- local knowledge base (RAG) ---------------- */
+var KB_KEY = 'js-exercise-kb-v1';
+var KB_MAX_FILE = 200 * 1024;
+var KB_MAX_TEXT = 500 * 1024;
+var kbDocs = loadKB();
+
+function loadKB() {
+  try {
+    var raw = localStorage.getItem(KB_KEY);
+    if (!raw) return [];
+    var arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(function (d) {
+      return d && typeof d.text === 'string' && d.text.trim();
+    }).map(function (d) {
+      return {
+        id: String(d.id || ('k' + Math.random().toString(36).slice(2))),
+        name: String(d.name || 'Note').slice(0, 80),
+        text: String(d.text),
+        added: d.added || Date.now()
+      };
+    });
+  } catch (e) { return []; }
+}
+
+function saveKB() {
+  try {
+    localStorage.setItem(KB_KEY, JSON.stringify(kbDocs));
+    return true;
+  } catch (e) { return false; }
+}
+
+function kbId() {
+  return 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function kbChunksFor(doc) {
+  var text = String(doc.text || '').replace(/\r\n/g, '\n').trim();
+  if (!text) return [];
+  var paras = text.split(/\n{2,}/);
+  var chunks = [];
+  var cur = '';
+  function pushCur() { if (cur.trim()) chunks.push(cur.trim()); cur = ''; }
+  for (var i = 0; i < paras.length; i++) {
+    var p = paras[i].trim();
+    if (!p) continue;
+    if (cur && (cur.length + p.length + 2) > 700) pushCur();
+    if (p.length > 900) {
+      pushCur();
+      for (var at = 0; at < p.length; at += 760) chunks.push(p.slice(at, at + 800));
+    } else {
+      cur = cur ? cur + '\n\n' + p : p;
+    }
+  }
+  pushCur();
+  return chunks;
+}
+
+function kbChunks() {
+  var out = [];
+  for (var i = 0; i < kbDocs.length; i++) {
+    var d = kbDocs[i];
+    var chunks = kbChunksFor(d);
+    for (var j = 0; j < chunks.length; j++) {
+      out.push({
+        kind: 'note', id: d.id + ':' + j, docId: d.id, docName: d.name,
+        title: d.name, text: chunks[j],
+        source: (isEn() ? 'Your notes · ' : '你的资料 · ') + d.name
+      });
+    }
+  }
+  return out;
+}
+
+function kbStats() {
+  var chunks = 0, chars = 0;
+  for (var i = 0; i < kbDocs.length; i++) {
+    chunks += kbChunksFor(kbDocs[i]).length;
+    chars += kbDocs[i].text.length;
+  }
+  return { docs: kbDocs.length, chunks: chunks, chars: chars };
+}
+
+function kbRender() {
+  var list = document.getElementById('kbList');
+  var stats = document.getElementById('kbStats');
+  var note = document.getElementById('kbNote');
+  if (!list || !stats) return;
+  var st = kbStats();
+  stats.textContent = st.docs + (isEn() ? ' document(s) · ' : ' 份资料 · ') +
+    st.chunks + (isEn() ? ' chunks · ' : ' 个片段 · ') + Math.round(st.chars / 1024) + ' KB';
+  if (!kbDocs.length) {
+    list.innerHTML = '<div class="kb-empty">' + esc(t('kbEmpty')) + '</div>';
+  } else {
+    list.innerHTML = kbDocs.map(function (d) {
+      var c = kbChunksFor(d).length;
+      return '<div class="kb-item" data-id="' + esc(d.id) + '">' +
+        '<div class="kb-item-main"><strong>' + esc(d.name) + '</strong><span>' +
+        c + (isEn() ? ' chunks · ' : ' 个片段 · ') + Math.round(d.text.length / 1024) + ' KB</span></div>' +
+        '<button type="button" class="mini" data-del="' + esc(d.id) + '">' + esc(t('kbDelete')) + '</button></div>';
+    }).join('');
+  }
+  if (note) note.textContent = t('kbStored');
+}
+
+function kbAddDocument(name, text) {
+  var clean = String(text || '').trim();
+  if (!clean) return 0;
+  if (clean.length > KB_MAX_TEXT) clean = clean.slice(0, KB_MAX_TEXT);
+  var firstLine = clean.split('\n')[0].trim().slice(0, 40);
+  var doc = {
+    id: kbId(),
+    name: String(name || firstLine || (isEn() ? 'Pasted note' : '粘贴的资料')).slice(0, 80),
+    text: clean,
+    added: Date.now()
+  };
+  kbDocs.push(doc);
+  var ok = saveKB();
+  kbRender();
+  if (!ok && document.getElementById('kbNote')) {
+    document.getElementById('kbNote').textContent = t('kbQuota');
+  }
+  return kbChunksFor(doc).length;
+}
+
+function kbDelete(id) {
+  kbDocs = kbDocs.filter(function (d) { return d.id !== id; });
+  saveKB();
+  kbRender();
+}
+
+function kbClear() {
+  if (!kbDocs.length) return;
+  if (!window.confirm(t('kbConfirmClear'))) return;
+  kbDocs = [];
+  saveKB();
+  kbRender();
+}
+
+function kbOpen() {
+  var m = document.getElementById('kbModal');
+  if (!m) return;
+  m.hidden = false;
+  kbRender();
+  var ta = document.getElementById('kbText');
+  if (ta) ta.focus();
+}
+
+function kbClose() {
+  var m = document.getElementById('kbModal');
+  if (m) m.hidden = true;
+}
+
+function kbReadFiles(files, done) {
+  var arr = Array.prototype.slice.call(files || []);
+  var results = [];
+  var pending = arr.length;
+  if (!pending) { done(results); return; }
+  arr.forEach(function (f) {
+    if (f.size > KB_MAX_FILE) {
+      pending--;
+      if (!pending) done(results);
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      results.push({ name: f.name, text: String(reader.result || '') });
+      pending--;
+      if (!pending) done(results);
+    };
+    reader.onerror = function () {
+      pending--;
+      if (!pending) done(results);
+    };
+    reader.readAsText(f);
+  });
+}
+
 function tutorDocs() {
   var docs = [];
   for (var i = 0; i < CHAPTERS.length; i++) {
@@ -1159,6 +1424,8 @@ function tutorDocs() {
       source: (isEn() ? 'Exercise · ' : '练习 · ') + exTitle(ex)
     });
   }
+  var notes = kbChunks();
+  for (var n = 0; n < notes.length; n++) docs.push(notes[n]);
   return docs;
 }
 
@@ -1181,50 +1448,70 @@ function tutorTerms(q) {
   return terms;
 }
 
-function tutorScore(doc, terms) {
-  var text = doc.text.toLowerCase();
-  var title = doc.title.toLowerCase();
-  var score = 0;
+function tutorUniqueTerms(q) {
+  var seen = {}, out = [];
+  var terms = tutorTerms(q);
   for (var i = 0; i < terms.length; i++) {
-    var term = terms[i];
-    var count = 0;
-    var at = 0;
-    while ((at = text.indexOf(term, at)) !== -1) {
-      count++;
-      at += term.length;
-      if (count > 6) break;
-    }
-    score += count;
-    if (title.indexOf(term) !== -1) score += 6;
+    if (!seen[terms[i]]) { seen[terms[i]] = 1; out.push(terms[i]); }
   }
-  return score;
+  return out;
 }
 
 function tutorBest(q, noExercise) {
-  var terms = tutorTerms(q);
+  var terms = tutorUniqueTerms(q);
   if (!terms.length) return null;
   var docs = tutorDocs();
-  var best = null;
-  var bestScore = 0;
+  if (noExercise) docs = docs.filter(function (d) { return d.kind !== 'exercise'; });
+  if (!docs.length) return null;
+  var k1 = 1.2, b = 0.75;
+  var tokenized = [], dfs = {}, totalLen = 0;
   for (var i = 0; i < docs.length; i++) {
-    if (noExercise && docs[i].kind === 'exercise') continue;
-    var score = tutorScore(docs[i], terms);
-    if (docs[i].kind !== 'exercise') score += 3;
-    if (score > bestScore) { bestScore = score; best = docs[i]; }
+    var toks = tutorTerms(docs[i].text + ' ' + (docs[i].title || ''));
+    tokenized.push(toks);
+    totalLen += toks.length;
+    var seen = {};
+    for (var t = 0; t < toks.length; t++) {
+      if (!seen[toks[t]]) {
+        seen[toks[t]] = 1;
+        dfs[toks[t]] = (dfs[toks[t]] || 0) + 1;
+      }
+    }
   }
-  if (!best || bestScore < 2) return null;
+  var avg = totalLen / docs.length || 1;
+  var best = null, bestScore = 0;
+  for (var d = 0; d < docs.length; d++) {
+    var tf = {}, dl = tokenized[d].length;
+    for (var j = 0; j < tokenized[d].length; j++) {
+      tf[tokenized[d][j]] = (tf[tokenized[d][j]] || 0) + 1;
+    }
+    var score = 0;
+    for (var k = 0; k < terms.length; k++) {
+      var term = terms[k];
+      var f = tf[term] || 0;
+      if (!f) continue;
+      var df = dfs[term] || 0;
+      var idf = Math.log(1 + (docs.length - df + 0.5) / (df + 0.5));
+      score += idf * (f * (k1 + 1)) / (f + k1 * (1 - b + b * dl / avg));
+      if ((docs[d].title || '').toLowerCase().indexOf(term) !== -1) score += idf * 2;
+    }
+    if (docs[d].kind !== 'exercise') score += 0.6;
+    if (score > bestScore) { bestScore = score; best = docs[d]; }
+  }
+  if (!best || bestScore < 0.8) return null;
   return best;
 }
 
 function tutorExcerpt(doc) {
   var text = String(doc.text || '').replace(/\s+/g, ' ').trim();
   if (text.length > 700) text = text.slice(0, 700).replace(/\s+\S*$/, '') + '…';
+  if (doc.kind === 'note') return text;
   return doc.title + '\n\n' + text;
 }
 
 function tutorActionFor(doc) {
   if (!doc) return null;
   if (doc.kind === 'exercise') return { kind: 'exercise', id: doc.id };
+  if (doc.kind === 'note') return null;
   return { kind: 'lesson', id: doc.id };
 }
 
@@ -1474,8 +1761,45 @@ function initTutor() {
     recognition.onend = function () { mic.classList.remove('on'); };
     recognition.onerror = function () { mic.classList.remove('on'); };
   }
+  var kbBtn = document.getElementById('kbBtn');
+  if (kbBtn) kbBtn.addEventListener('click', kbOpen);
+  var kbCloseBtn = document.getElementById('kbClose');
+  if (kbCloseBtn) kbCloseBtn.addEventListener('click', kbClose);
+  var kbModal = document.getElementById('kbModal');
+  if (kbModal) kbModal.addEventListener('click', function (e) { if (e.target === kbModal) kbClose(); });
+  var kbAddBtn = document.getElementById('kbAdd');
+  if (kbAddBtn) kbAddBtn.addEventListener('click', function () {
+    var ta = document.getElementById('kbText');
+    var text = ta ? ta.value : '';
+    if (!text.trim()) return;
+    var c = kbAddDocument('', text);
+    if (ta) ta.value = '';
+    tutorAppend('assistant', t('kbAdded', { n: 1, c: c }));
+    kbRender();
+  });
+  var kbClearBtn = document.getElementById('kbClear');
+  if (kbClearBtn) kbClearBtn.addEventListener('click', kbClear);
+  var kbListEl = document.getElementById('kbList');
+  if (kbListEl) kbListEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-del]');
+    if (!b) return;
+    kbDelete(b.getAttribute('data-del'));
+  });
+  var kbFile = document.getElementById('kbFile');
+  if (kbFile) kbFile.addEventListener('change', function () {
+    kbReadFiles(kbFile.files, function (results) {
+      var total = 0, n = 0;
+      results.forEach(function (r) { total += kbAddDocument(r.name, r.text); n++; });
+      kbFile.value = '';
+      if (n) tutorAppend('assistant', t('kbAdded', { n: n, c: total }));
+      kbRender();
+    });
+  });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') tutorClosePanel();
+    if (e.key !== 'Escape') return;
+    var modal = document.getElementById('kbModal');
+    if (modal && !modal.hidden) { kbClose(); return; }
+    tutorClosePanel();
   });
 }
 
