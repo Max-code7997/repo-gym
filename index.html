@@ -191,6 +191,40 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
 .lang-toggle:hover{background:var(--ink);color:var(--paper)}
 .brand-row{flex-wrap:wrap}
 
+.ask-btn{position:fixed;right:24px;bottom:24px;z-index:30;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;background:var(--red);color:var(--paper);border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:10px 14px;cursor:pointer}
+.ask-btn:hover{background:var(--red-deep);transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.tutor{position:fixed;right:24px;bottom:78px;z-index:40;width:min(390px,calc(100vw - 32px));max-height:72vh;display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--ink);box-shadow:6px 6px 0 rgba(23,21,15,.18)}
+.tutor[hidden]{display:none}
+.tutor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--ink);background:var(--paper-2)}
+.tutor-head strong{font-family:var(--mono);font-size:11px;letter-spacing:.14em}
+.tutor-context{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.03em;color:var(--muted);margin-top:2px;max-width:270px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tutor-close{background:transparent;border:1px solid var(--ink);font-family:var(--mono);font-size:13px;width:24px;height:24px;cursor:pointer;line-height:1}
+.tutor-close:hover{background:var(--ink);color:var(--paper)}
+.tutor-log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:9px;min-height:120px;max-height:46vh}
+.msg{max-width:92%;font-size:13.5px;line-height:1.55;padding:8px 10px;border:1px solid var(--rule-strong);white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:rgba(192,58,27,.08);border-color:var(--red)}
+.msg.assistant{align-self:flex-start;background:var(--paper)}
+.msg-src{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:5px;letter-spacing:.03em}
+.msg-acts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.mini{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--rule-strong);background:transparent;color:var(--ink);padding:2px 6px;cursor:pointer}
+.mini:hover{background:var(--ink);color:var(--paper)}
+.tutor-chips{display:flex;flex-wrap:wrap;gap:4px;padding:0 12px 8px}
+.tutor-chips button{font-family:var(--mono);font-size:9.5px;border:1px solid var(--rule-strong);background:transparent;color:var(--muted);padding:2px 6px;cursor:pointer}
+.tutor-chips button:hover{color:var(--ink);border-color:var(--ink)}
+.tutor-form{display:flex;gap:6px;padding:9px 12px;border-top:1px solid var(--rule-strong);background:var(--paper-2)}
+.tutor-form input{flex:1;min-width:0;font-family:var(--mono);font-size:12px;padding:7px 8px;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink)}
+.tutor-form input:focus{outline:2px solid var(--red);outline-offset:-2px}
+.tutor-form .btn{padding:6px 10px;font-size:9.5px}
+.icon-btn{font-family:var(--mono);font-size:10px;letter-spacing:.06em;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink);cursor:pointer;padding:0 8px}
+.icon-btn:hover{background:var(--ink);color:var(--paper)}
+.icon-btn.on{background:var(--red);color:var(--paper);border-color:var(--red)}
+.tutor-note{font-family:var(--mono);font-size:8.5px;line-height:1.45;color:var(--muted);padding:0 12px 10px;background:var(--paper-2)}
+@media (max-width:860px){
+  .ask-btn{right:14px;bottom:14px}
+  .tutor{right:10px;left:10px;bottom:64px;width:auto;max-height:70vh}
+  .tutor-log{max-height:42vh}
+}
+
 </style>
 </head>
 <body class="boot">
@@ -210,6 +244,21 @@ body.boot .content>.panel{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
   <section class="content" id="content"></section>
 </main>
 <footer class="footer" id="footer">Built with AutoClaw · 数据来源 validator.js（MIT，commit 9ff3424）· 仅用于教学演示</footer>
+<button type="button" class="ask-btn" id="askBtn" aria-controls="tutorPanel" aria-expanded="false">ASK</button>
+<section class="tutor" id="tutorPanel" hidden aria-label="Course tutor">
+  <div class="tutor-head">
+    <div><strong>ASK REPO GYM</strong><span class="tutor-context" id="tutorContext"></span></div>
+    <button type="button" class="tutor-close" id="tutorClose" aria-label="Close">×</button>
+  </div>
+  <div class="tutor-log" id="tutorLog" aria-live="polite"></div>
+  <div class="tutor-chips" id="tutorChips"></div>
+  <form class="tutor-form" id="tutorForm">
+    <input id="tutorInput" type="text" autocomplete="off" placeholder="Ask something…" aria-label="Ask the course tutor">
+    <button type="button" class="icon-btn" id="tutorMic" title="Voice input">MIC</button>
+    <button type="submit" class="btn primary" id="tutorSend">Send</button>
+  </form>
+  <div class="tutor-note" id="tutorNote"></div>
+</section>
 <iframe id="runner" sandbox="allow-scripts" title="测试运行沙箱"></iframe>
 
 <script type="text/plain" id="runner-src">
@@ -313,7 +362,29 @@ var I18N = {
     completeSuffix: ' · 课程完成',
     footer: 'Built with AutoClaw · 数据来源 validator.js（MIT，commit 9ff3424）· 仅用于教学演示',
     noData: '未加载到题目数据：请确认 data.js 与 index.html 位于同一目录。',
-    notFound: '未找到题目。'
+    notFound: '未找到题目。',
+    tutorAsk: '问答',
+    tutorInputPlaceholder: '问点什么…',
+    tutorSend: '发送',
+    tutorMic: '语音输入',
+    tutorNote: '回答来自本课程内容，不联网。朗读使用系统语音；语音输入取决于浏览器。',
+    tutorGreeting: '问我关于这门课的概念、当前题的提示，或测试为什么失败。',
+    tutorHelp: '我可以回答：\n• 这门课的概念（Luhn、ISBN、Base64、日期、JSON、口令）\n• 当前题的提示\n• 测试为什么失败\n• 下一项是什么\n\n试试问：Luhn 怎么算？/ 给我一个提示 / 为什么测试失败？',
+    tutorNoExercise: '先打开一道练习，我才能给提示。',
+    tutorNoRun: '先点「运行测试」，我才能根据失败用例解释。',
+    tutorRunError: '代码在测试前就出错了：{error}',
+    tutorAllPass: '这次全部通过了。要不要试试下一项？',
+    tutorFailIntro: '有 {n} 条用例没通过：',
+    tutorMaybe: '可能相关的概念：',
+    tutorCourseDone: '课程已经全部完成。',
+    tutorNext: '下一项：{title}。',
+    tutorSolution: '先试提示；参考答案在题目工具栏的「参考答案」按钮里，需要确认才会展开。',
+    tutorNoExample: '这一章没有代码示例。试试问「Luhn 怎么算？」或「Base64 的 padding」。',
+    tutorFallback: '我只能回答这门课里的内容。试试问：Luhn 怎么算？/ Base64 的 padding / 为什么测试失败？',
+    tutorSource: '来源',
+    tutorListen: '朗读',
+    tutorOpenAction: '打开',
+    tutorContext: '当前：{title}'
   },
   en: {
     tagline: 'Turn real open-source repos into a graded coding course',
@@ -350,7 +421,29 @@ var I18N = {
     completeSuffix: ' · course complete',
     footer: 'Built with AutoClaw · Data from validator.js (MIT, commit 9ff3424) · for teaching only',
     noData: 'Exercise data not loaded: check that data.js sits next to index.html.',
-    notFound: 'Exercise not found.'
+    notFound: 'Exercise not found.',
+    tutorAsk: 'ASK',
+    tutorInputPlaceholder: 'Ask something…',
+    tutorSend: 'Send',
+    tutorMic: 'Voice input',
+    tutorNote: 'Answers come from this course; no network. Read-aloud uses system voices; speech input depends on the browser.',
+    tutorGreeting: 'Ask me about a concept, a hint for this exercise, or why a test failed.',
+    tutorHelp: 'I can answer:\n• concepts from this course (Luhn, ISBN, Base64, dates, JSON, passwords)\n• hints for the current exercise\n• why tests failed\n• what comes next\n\nTry: How does Luhn work? / Give me a hint / Why did my test fail?',
+    tutorNoExercise: 'Open an exercise first and I can give hints.',
+    tutorNoRun: 'Run the tests first and I can explain the failures.',
+    tutorRunError: 'The code failed before the tests ran: {error}',
+    tutorAllPass: 'Everything passed this time. Want the next item?',
+    tutorFailIntro: '{n} case(s) failed:',
+    tutorMaybe: 'Possibly related:',
+    tutorCourseDone: 'You have completed the course.',
+    tutorNext: 'Next up: {title}.',
+    tutorSolution: 'Try the hints first; the reference solution is behind the Reference button in the exercise toolbar.',
+    tutorNoExample: 'This chapter has no code snippet. Try “How does Luhn work?” or “Base64 padding”.',
+    tutorFallback: 'I answer from this course only. Try: How does Luhn work? / Base64 padding / Why did my test fail?',
+    tutorSource: 'Source',
+    tutorListen: 'Listen',
+    tutorOpenAction: 'Open',
+    tutorContext: 'Context: {title}'
   }
 };
 
@@ -524,6 +617,16 @@ function applyChrome() {
   }
   var footer = document.getElementById('footer');
   if (footer) footer.textContent = t('footer');
+  var ask = document.getElementById('askBtn');
+  if (ask) ask.textContent = t('tutorAsk');
+  var ti = document.getElementById('tutorInput');
+  if (ti) ti.placeholder = t('tutorInputPlaceholder');
+  var tsend = document.getElementById('tutorSend');
+  if (tsend) tsend.textContent = t('tutorSend');
+  var tnote = document.getElementById('tutorNote');
+  if (tnote) tnote.textContent = t('tutorNote');
+  var tmic = document.getElementById('tutorMic');
+  if (tmic) tmic.title = t('tutorMic');
 }
 
 function renderProgress() {
@@ -658,6 +761,7 @@ function openLesson(id) {
   renderLesson(ch);
   renderProgress();
   revealActive();
+  tutorContextChanged();
 }
 
 function openExercise(id) {
@@ -675,6 +779,7 @@ function openExercise(id) {
   renderDetail();
   renderProgress();
   revealActive();
+  tutorContextChanged();
 }
 
 function renderLesson(ch) {
@@ -838,6 +943,7 @@ function runTests() {
   var ed = document.getElementById('editor');
   if (!ex || !ed) return;
   saveCurrentCode();
+  lastRun = { id: currentId, type: 'pending' };
   var results = document.getElementById('results');
   results.innerHTML = '<div class="rstatus">' + esc(t('running')) + '</div>';
   var localizedTests = (ex.tests || []).map(function (t) {
@@ -853,6 +959,7 @@ function runTests() {
   var token = runToken;
   watchdog = setTimeout(function () {
     if (token !== runToken) return;
+    lastRun = { id: currentId, type: 'error', error: t('timeout') };
     var r = document.getElementById('results');
     if (r) r.innerHTML = '<div class="errbox"><div class="t">' + esc(t('timeout')) + '</div><div class="m">' + esc(t('timeoutDetail')) + '</div></div>';
   }, RUN_TIMEOUT);
@@ -868,16 +975,20 @@ window.addEventListener('message', function (e) {
   if (!results) return;
   clearTimeout(watchdog);
   if (m.type === 'parse') {
+    lastRun = { id: currentId, type: 'error', error: m.error || 'SyntaxError' };
     results.innerHTML = '<div class="errbox"><div class="t">' + esc(t('parseError')) + '</div><div class="m">' + esc(m.error || 'SyntaxError') + '</div></div>';
   } else if (m.type === 'runtime') {
+    lastRun = { id: currentId, type: 'error', error: m.error || 'Error' };
     results.innerHTML = '<div class="errbox"><div class="t">' + esc(t('runtimeError')) + '</div><div class="m">' + esc(m.error || 'Error') + '</div></div>';
   } else if (m.type === 'done') {
+    lastRun = { id: currentId, type: 'done', results: m.results || [] };
     renderResults(m.results || []);
   }
 });
 
 function renderResults(results) {
   var ex = byId(currentId);
+  lastRun = { id: currentId, type: 'done', results: results };
   var el = document.getElementById('results');
   var passCount = 0;
   var html = '';
@@ -969,6 +1080,405 @@ function decryptWord(el, text, duration) {
   requestAnimationFrame(tick);
 }
 
+/* ---------------- offline course tutor ---------------- */
+var lastRun = null;
+var tutorGreeted = false;
+var recognition = null;
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SR) {
+  try {
+    recognition = new SR();
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.lang = isEn() ? 'en-US' : 'zh-CN';
+  } catch (e) { recognition = null; }
+}
+
+var TUTOR_STOP = {
+  the: 1, is: 1, are: 1, a: 1, an: 1, to: 1, of: 1, and: 1, in: 1, on: 1,
+  for: 1, with: 1, i: 1, my: 1, it: 1, me: 1, can: 1, you: 1, do: 1, does: 1,
+  how: 1, what: 1, why: 1, this: 1, that: 1, work: 1, works: 1, explain: 1,
+  tell: 1, about: 1, give: 1, hint: 1, please: 1, test: 1, tests: 1, fail: 1,
+  failed: 1, failing: 1, why: 1, next: 1, answer: 1, solution: 1, example: 1,
+  exercise: 1, chapter: 1, lesson: 1, help: 1, want: 1, need: 1, get: 1,
+  "这题": 1, "这道": 1, "这一": 1, "一题": 1, "怎么": 1, "什么": 1, "为什": 1,
+  "如何": 1, "一下": 1, "提示": 1, "失败": 1, "报错": 1, "错误": 1, "答案": 1,
+  "参考": 1, "下一": 1, "可以": 1, "帮我": 1, "给我": 1, "一个": 1, "这个": 1,
+  "那个": 1, "的": 1, "了": 1, "吗": 1, "呢": 1, "是": 1, "在": 1, "有": 1,
+  "和": 1, "与": 1, "就": 1, "都": 1, "我": 1, "你": 1, "它": 1, "讲": 1,
+  "做": 1, "写": 1, "算": 1, "题": 1, "章": 1, "课": 1, "试": 1, "测": 1
+};
+
+function tutorChipsFor() {
+  if (currentView && currentView.type === 'exercise') {
+    return isEn()
+      ? ['Give me a hint', 'Why did my tests fail?', 'What is this exercise about?']
+      : ['给我一个提示', '为什么测试失败？', '这题考什么？'];
+  }
+  var ch = tutorCurrentChapter();
+  var hasCode = false;
+  if (ch) hasCode = lessonSections(ch).some(function (sec) { return sec.code; });
+  return isEn()
+    ? ['What is this chapter about?', 'What is next?', hasCode ? 'Give an example' : 'What is the key idea?']
+    : ['这一章讲什么？', '下一项是什么？', hasCode ? '举个例子' : '这一章的重点是什么？'];
+}
+
+function tutorCurrentChapter() {
+  if (currentView && currentView.type === 'lesson') return chapterById(currentView.id);
+  if (currentId) {
+    var info = chapterOfExercise(currentId);
+    if (info) return info.chapter;
+  }
+  return null;
+}
+
+function tutorDocs() {
+  var docs = [];
+  for (var i = 0; i < CHAPTERS.length; i++) {
+    var ch = CHAPTERS[i];
+    var secs = lessonSections(ch);
+    var src = (isEn() ? 'Chapter ' : '第 ') + ch.number + (isEn() ? ' · ' : ' 章 · ') + chTitle(ch);
+    docs.push({
+      kind: 'lesson', id: ch.id, chapter: ch, title: lessonTitle(ch),
+      text: [lessonLede(ch), secs.map(function (s) { return s.h + ' ' + s.p; }).join(' '), lessonKeyIdea(ch), lessonPractice(ch)].join(' '),
+      source: src
+    });
+    for (var j = 0; j < secs.length; j++) {
+      docs.push({
+        kind: 'section', id: ch.id, chapter: ch, title: secs[j].h,
+        text: secs[j].p, source: src + ' · ' + secs[j].h
+      });
+    }
+  }
+  for (var k = 0; k < EXERCISES.length; k++) {
+    var ex = EXERCISES[k];
+    docs.push({
+      kind: 'exercise', id: ex.id, exercise: ex, title: exTitle(ex),
+      text: [exDesc(ex), exHints(ex).join(' '), exExplanation(ex)].join(' '),
+      source: (isEn() ? 'Exercise · ' : '练习 · ') + exTitle(ex)
+    });
+  }
+  return docs;
+}
+
+function tutorTerms(q) {
+  var s = String(q || '').toLowerCase();
+  var terms = [];
+  var words = s.match(/[a-z0-9_]+/g) || [];
+  for (var i = 0; i < words.length; i++) {
+    if (words[i].length >= 2 && !TUTOR_STOP[words[i]]) terms.push(words[i]);
+  }
+  var runs = s.match(/[一-鿿]+/g) || [];
+  for (var r = 0; r < runs.length; r++) {
+    var run = runs[r];
+    for (var j = 0; j < run.length - 1; j++) {
+      var bg = run.slice(j, j + 2);
+      if (!TUTOR_STOP[bg]) terms.push(bg);
+    }
+    if (run.length <= 4 && !TUTOR_STOP[run]) terms.push(run);
+  }
+  return terms;
+}
+
+function tutorScore(doc, terms) {
+  var text = doc.text.toLowerCase();
+  var title = doc.title.toLowerCase();
+  var score = 0;
+  for (var i = 0; i < terms.length; i++) {
+    var term = terms[i];
+    var count = 0;
+    var at = 0;
+    while ((at = text.indexOf(term, at)) !== -1) {
+      count++;
+      at += term.length;
+      if (count > 6) break;
+    }
+    score += count;
+    if (title.indexOf(term) !== -1) score += 6;
+  }
+  return score;
+}
+
+function tutorBest(q, noExercise) {
+  var terms = tutorTerms(q);
+  if (!terms.length) return null;
+  var docs = tutorDocs();
+  var best = null;
+  var bestScore = 0;
+  for (var i = 0; i < docs.length; i++) {
+    if (noExercise && docs[i].kind === 'exercise') continue;
+    var score = tutorScore(docs[i], terms);
+    if (docs[i].kind !== 'exercise') score += 3;
+    if (score > bestScore) { bestScore = score; best = docs[i]; }
+  }
+  if (!best || bestScore < 2) return null;
+  return best;
+}
+
+function tutorExcerpt(doc) {
+  var text = String(doc.text || '').replace(/\s+/g, ' ').trim();
+  if (text.length > 700) text = text.slice(0, 700).replace(/\s+\S*$/, '') + '…';
+  return doc.title + '\n\n' + text;
+}
+
+function tutorActionFor(doc) {
+  if (!doc) return null;
+  if (doc.kind === 'exercise') return { kind: 'exercise', id: doc.id };
+  return { kind: 'lesson', id: doc.id };
+}
+
+function tutorNextItem() {
+  if (!currentView) {
+    return CHAPTERS[0] ? { kind: 'lesson', id: CHAPTERS[0].id, title: lessonTitle(CHAPTERS[0]) } : null;
+  }
+  if (currentView.type === 'lesson') {
+    var ch = chapterById(currentView.id);
+    if (!ch) return null;
+    if (ch.exerciseIds[0]) {
+      var ex = byId(ch.exerciseIds[0]);
+      if (ex) return { kind: 'exercise', id: ex.id, title: exTitle(ex) };
+    }
+    var nx = nextChapter(ch.id);
+    return nx ? { kind: 'lesson', id: nx.id, title: lessonTitle(nx) } : null;
+  }
+  var info = chapterOfExercise(currentView.id);
+  if (!info) return null;
+  var idx = info.chapter.exerciseIds.indexOf(currentView.id);
+  var nextId = info.chapter.exerciseIds[idx + 1];
+  if (nextId) {
+    var nextEx = byId(nextId);
+    if (nextEx) return { kind: 'exercise', id: nextEx.id, title: exTitle(nextEx) };
+  }
+  var nch = nextChapter(info.chapter.id);
+  return nch ? { kind: 'lesson', id: nch.id, title: lessonTitle(nch) } : null;
+}
+
+function tutorAnswer(q) {
+  var s = String(q || '').toLowerCase();
+  var ex = currentId ? byId(currentId) : null;
+  var chapter = tutorCurrentChapter();
+
+  if (/(this exercise|这题|这道题|这一题)/.test(s)) {
+    if (ex) return { text: exTitle(ex) + '\n\n' + exDesc(ex), source: (isEn() ? 'Exercise · ' : '练习 · ') + exTitle(ex) };
+    return { text: t('tutorNoExercise') };
+  }
+  if (/(this chapter|这章|这一章|这一课)/.test(s)) {
+    if (chapter) return { text: lessonTitle(chapter) + '\n\n' + lessonLede(chapter), source: (isEn() ? 'Chapter ' : '第 ') + chapter.number, action: { kind: 'lesson', id: chapter.id } };
+    return { text: t('tutorNoExercise') };
+  }
+  if (/(example|例子|举例|举个)/.test(s)) {
+    if (chapter) {
+      var secs = lessonSections(chapter);
+      for (var i = 0; i < secs.length; i++) {
+        if (secs[i].code) {
+          return { text: secs[i].h + '\n\n' + secs[i].code, source: (isEn() ? 'Chapter ' : '第 ') + chapter.number + ' · ' + secs[i].h, action: { kind: 'lesson', id: chapter.id } };
+        }
+      }
+    }
+    return { text: t('tutorNoExample') };
+  }
+  if (/(key idea|takeaway|重点|要点|核心)/.test(s)) {
+    if (chapter) {
+      return {
+        text: lessonTitle(chapter) + '\n\n' + lessonKeyIdea(chapter) + (lessonPractice(chapter) ? '\n\n' + lessonPractice(chapter) : ''),
+        source: (isEn() ? 'Chapter ' : '第 ') + chapter.number,
+        action: { kind: 'lesson', id: chapter.id }
+      };
+    }
+    return { text: t('tutorFallback') };
+  }
+  if (/(hint|提示|怎么做|怎么写|怎么改|help me|stuck|卡住)/.test(s)) {
+    if (!ex) return { text: t('tutorNoExercise') };
+    var hints = exHints(ex);
+    return {
+      text: exTitle(ex) + '\n\n' + hints.map(function (h, i) { return (i + 1) + '. ' + h; }).join('\n'),
+      source: (isEn() ? 'Exercise · ' : '练习 · ') + exTitle(ex)
+    };
+  }
+  if (/(fail|失败|报错|错误|why.*not|why.*fail|wrong)/.test(s)) {
+    if (!ex) return { text: t('tutorNoExercise') };
+    if (!lastRun || lastRun.id !== currentId || lastRun.type === 'pending') return { text: t('tutorNoRun') };
+    if (lastRun.type === 'error') return { text: t('tutorRunError', { error: lastRun.error || '' }) };
+    var fails = (lastRun.results || []).filter(function (r) { return !r.pass; });
+    if (!fails.length) return { text: t('tutorAllPass') };
+    var lines = fails.slice(0, 5).map(function (r) { return '✗ ' + r.name + (r.error ? '\n  ' + r.error : ''); });
+    var concept = tutorBest(exTitle(ex) + ' ' + fails.map(function (r) { return r.name; }).join(' '), true);
+    var body = t('tutorFailIntro', { n: fails.length }) + '\n\n' + lines.join('\n\n');
+    if (concept) body += '\n\n' + t('tutorMaybe') + '\n' + tutorExcerpt(concept);
+    return { text: body, source: (isEn() ? 'Exercise · ' : '练习 · ') + exTitle(ex), action: concept ? tutorActionFor(concept) : null };
+  }
+  if (/(next|下一|接下来|what.*next)/.test(s)) {
+    var item = tutorNextItem();
+    if (!item) return { text: t('tutorCourseDone') };
+    return { text: t('tutorNext', { title: item.title }), action: item };
+  }
+  if (/(answer|答案|solution|参考解|reference)/.test(s)) {
+    if (!ex) return { text: t('tutorNoExercise') };
+    return { text: t('tutorSolution') };
+  }
+  if (/(what can you|help|你能|会什么|怎么用|how to use)/.test(s)) {
+    return { text: t('tutorHelp') };
+  }
+  var best = tutorBest(q);
+  if (best) return { text: tutorExcerpt(best), source: best.source, action: tutorActionFor(best) };
+  return { text: t('tutorFallback') };
+}
+
+function tutorContextTitle() {
+  if (currentView && currentView.type === 'exercise') {
+    var ex = byId(currentView.id);
+    return ex ? exTitle(ex) : '';
+  }
+  if (currentView && currentView.type === 'lesson') {
+    var ch = chapterById(currentView.id);
+    return ch ? lessonTitle(ch) : '';
+  }
+  return '';
+}
+
+function updateTutorContext() {
+  var el = document.getElementById('tutorContext');
+  if (!el) return;
+  var title = tutorContextTitle();
+  el.textContent = title ? t('tutorContext', { title: title }) : '';
+}
+
+function renderTutorChips() {
+  var box = document.getElementById('tutorChips');
+  if (!box) return;
+  var chips = tutorChipsFor();
+  box.innerHTML = '';
+  for (var i = 0; i < chips.length; i++) {
+    (function (text) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = text;
+      b.addEventListener('click', function () { tutorSend(text); });
+      box.appendChild(b);
+    })(chips[i]);
+  }
+}
+
+function tutorAppend(role, text, opts) {
+  var log = document.getElementById('tutorLog');
+  if (!log) return;
+  var wrap = document.createElement('div');
+  wrap.className = 'msg ' + role;
+  var body = document.createElement('div');
+  body.className = 'msg-body';
+  body.textContent = text;
+  wrap.appendChild(body);
+  if (opts && opts.source) {
+    var src = document.createElement('div');
+    src.className = 'msg-src';
+    src.textContent = t('tutorSource') + ': ' + opts.source;
+    wrap.appendChild(src);
+  }
+  var acts = document.createElement('div');
+  acts.className = 'msg-acts';
+  if (role === 'assistant' && synth) {
+    var speak = document.createElement('button');
+    speak.type = 'button';
+    speak.className = 'mini';
+    speak.dataset.label = t('tutorListen');
+    speak.textContent = t('tutorListen');
+    speak.addEventListener('click', function () { speakText(text, speak); });
+    acts.appendChild(speak);
+  }
+  if (opts && opts.action) {
+    var open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'mini';
+    open.textContent = t('tutorOpenAction');
+    open.addEventListener('click', function () {
+      if (opts.action.kind === 'lesson') openLesson(opts.action.id);
+      else openExercise(opts.action.id);
+    });
+    acts.appendChild(open);
+  }
+  if (acts.children.length) wrap.appendChild(acts);
+  log.appendChild(wrap);
+  log.scrollTop = log.scrollHeight;
+}
+
+function tutorSend(q) {
+  var text = String(q || '').trim();
+  if (!text) return;
+  tutorAppend('user', text);
+  var ans = tutorAnswer(text);
+  tutorAppend('assistant', ans.text, ans);
+}
+
+function tutorOpenPanel() {
+  var panel = document.getElementById('tutorPanel');
+  var btn = document.getElementById('askBtn');
+  if (!panel) return;
+  panel.hidden = false;
+  if (btn) btn.setAttribute('aria-expanded', 'true');
+  if (!tutorGreeted) {
+    tutorAppend('assistant', t('tutorGreeting'));
+    tutorGreeted = true;
+  }
+  updateTutorContext();
+  renderTutorChips();
+  var input = document.getElementById('tutorInput');
+  if (input) input.focus();
+}
+
+function tutorClosePanel() {
+  var panel = document.getElementById('tutorPanel');
+  var btn = document.getElementById('askBtn');
+  if (!panel) return;
+  panel.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function tutorContextChanged() {
+  updateTutorContext();
+  renderTutorChips();
+  if (recognition) recognition.lang = isEn() ? 'en-US' : 'zh-CN';
+}
+
+function initTutor() {
+  var btn = document.getElementById('askBtn');
+  if (!btn) return;
+  btn.addEventListener('click', tutorOpenPanel);
+  var close = document.getElementById('tutorClose');
+  if (close) close.addEventListener('click', tutorClosePanel);
+  var form = document.getElementById('tutorForm');
+  if (form) form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('tutorInput');
+    tutorSend(input.value);
+    input.value = '';
+  });
+  var mic = document.getElementById('tutorMic');
+  if (!recognition) {
+    if (mic) mic.hidden = true;
+  } else if (mic) {
+    mic.addEventListener('click', function () {
+      try {
+        recognition.lang = isEn() ? 'en-US' : 'zh-CN';
+        recognition.start();
+        mic.classList.add('on');
+      } catch (e) {
+        try { recognition.stop(); } catch (err) {}
+        mic.classList.remove('on');
+      }
+    });
+    recognition.onresult = function (e) {
+      var said = e.results && e.results[0] && e.results[0][0] ? e.results[0][0].transcript : '';
+      if (said) tutorSend(said);
+    };
+    recognition.onend = function () { mic.classList.remove('on'); };
+    recognition.onerror = function () { mic.classList.remove('on'); };
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') tutorClosePanel();
+  });
+}
+
 function setLang(next) {
   if (next !== 'zh' && next !== 'en') return;
   if (next === lang()) return;
@@ -984,6 +1494,7 @@ function setLang(next) {
     else if (currentView.type === 'exercise') renderDetail();
   }
   revealActive();
+  tutorContextChanged();
 }
 
 function init() {
@@ -1016,6 +1527,7 @@ function init() {
       openLesson(CHAPTERS[0].id);
     }
   }
+  initTutor();
   document.body.classList.add('boot');
   setTimeout(function () { document.body.classList.remove('boot'); }, 1400);
   decryptWord(document.getElementById('brandWord'), 'REPO GYM', 850);
