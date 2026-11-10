@@ -1721,6 +1721,21 @@ function tutorClosePanel() {
   if (btn) btn.setAttribute('aria-expanded', 'false');
 }
 
+function tutorResetLanguage() {
+  var log = document.getElementById('tutorLog');
+  if (log) log.innerHTML = '';
+  tutorGreeted = false;
+  stopSpeech();
+  var panel = document.getElementById('tutorPanel');
+  if (panel && !panel.hidden) {
+    tutorAppend('assistant', t('tutorGreeting'));
+    tutorGreeted = true;
+  }
+  updateTutorContext();
+  renderTutorChips();
+  if (recognition) recognition.lang = isEn() ? 'en-US' : 'zh-CN';
+}
+
 function tutorContextChanged() {
   updateTutorContext();
   renderTutorChips();
@@ -1818,7 +1833,7 @@ function setLang(next) {
     else if (currentView.type === 'exercise') renderDetail();
   }
   revealActive();
-  tutorContextChanged();
+  tutorResetLanguage();
 }
 
 function init() {
