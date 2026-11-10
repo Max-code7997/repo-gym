@@ -9,19 +9,59 @@
   "starter_code": "// isBase64 —— 校验标准 / URL-safe Base64（bugfix 起点）\n// 仓库来源：src/lib/isBase64.js（validator.js 13.15.35）\n// assertString / merge 与仓库实现一致。\n\nfunction assertString(input) {\n  if (typeof input !== 'string') {\n    const invalidType = input === null ? 'null' : typeof input;\n    throw new TypeError(`Expected a string but received a ${invalidType}`);\n  }\n}\n\nfunction merge(obj = {}, defaults) {\n  if (typeof obj !== 'object' || obj === null) {\n    obj = {};\n  }\n  for (const key in defaults) {\n    if (typeof obj[key] === 'undefined') {\n      obj[key] = defaults[key];\n    }\n  }\n  return obj;\n}\n\nconst base64WithPadding = /^[A-Za-z0-9+/]+={0,2}$/;\nconst base64WithoutPadding = /^[A-Za-z0-9+/]+$/;\nconst base64UrlWithPadding = /^[A-Za-z0-9_-]+={0,2}$/;\nconst base64UrlWithoutPadding = /^[A-Za-z0-9_-]+$/;\n\nfunction isBase64(str, options) {\n  assertString(str);\n  options = merge(options, { urlSafe: false, padding: true });\n\n  if (str === '') return true;\n\n  if (options.padding && str.length % 4 !== 0) return false;\n\n  let regex;\n  if (options.urlSafe) {\n    regex = options.padding ? base64UrlWithPadding : base64UrlWithoutPadding;\n  } else {\n    regex = options.padding ? base64WithPadding : base64WithoutPadding;\n  }\n\n  return (!options.padding || str.length % 4 === 0) && regex.test(str);\n}\n",
   "reference_solution": "// isBase64 —— 校验标准 / URL-safe Base64（参考实现，与仓库 src/lib/isBase64.js 一致）\n\nfunction assertString(input) {\n  if (typeof input !== 'string') {\n    const invalidType = input === null ? 'null' : typeof input;\n    throw new TypeError(`Expected a string but received a ${invalidType}`);\n  }\n}\n\nfunction merge(obj = {}, defaults) {\n  if (typeof obj !== 'object' || obj === null) {\n    obj = {};\n  }\n  for (const key in defaults) {\n    if (typeof obj[key] === 'undefined') {\n      obj[key] = defaults[key];\n    }\n  }\n  return obj;\n}\n\nconst base64WithPadding = /^[A-Za-z0-9+/]+={0,2}$/;\nconst base64WithoutPadding = /^[A-Za-z0-9+/]+$/;\nconst base64UrlWithPadding = /^[A-Za-z0-9_-]+={0,2}$/;\nconst base64UrlWithoutPadding = /^[A-Za-z0-9_-]+$/;\n\nfunction isBase64(str, options) {\n  assertString(str);\n  options = merge(options, { urlSafe: false, padding: !options?.urlSafe });\n\n  if (str === '') return true;\n\n  if (options.padding && str.length % 4 !== 0) return false;\n\n  let regex;\n  if (options.urlSafe) {\n    regex = options.padding ? base64UrlWithPadding : base64UrlWithoutPadding;\n  } else {\n    regex = options.padding ? base64WithPadding : base64WithoutPadding;\n  }\n\n  return (!options.padding || str.length % 4 === 0) && regex.test(str);\n}\n",
   "tests": [
-    { "name": "默认接受带 padding 的标准 Base64", "expr": "isBase64('Zm9vYmE=') === true" },
-    { "name": "长度恰为 4 倍数的无填充串默认通过", "expr": "isBase64('Zm9vYmFy') === true" },
-    { "name": "padding 不完整", "expr": "isBase64('Zg=') === false" },
-    { "name": "默认模式拒绝长度非 4 倍数", "expr": "isBase64('12345') === false" },
-    { "name": "urlSafe 默认不要求 padding", "expr": "isBase64('PDw_Pz8-Pg', { urlSafe: true }) === true" },
-    { "name": "urlSafe 字符集不含 + 与 /", "expr": "isBase64('This+isa/bad+base64Url==', { urlSafe: true }) === false" },
-    { "name": "urlSafe 与显式 padding 并用", "expr": "isBase64('SGVsbG8-', { urlSafe: true, padding: true }) === true" },
-    { "name": "空串视为合法", "expr": "isBase64('') === true" }
+    {
+      "name": "默认接受带 padding 的标准 Base64",
+      "expr": "isBase64('Zm9vYmE=') === true",
+      "name_en": "Default accepts standard Base64 with padding"
+    },
+    {
+      "name": "长度恰为 4 倍数的无填充串默认通过",
+      "expr": "isBase64('Zm9vYmFy') === true",
+      "name_en": "Unpadded string of length 4 passes by default"
+    },
+    {
+      "name": "padding 不完整",
+      "expr": "isBase64('Zg=') === false",
+      "name_en": "Incomplete padding"
+    },
+    {
+      "name": "默认模式拒绝长度非 4 倍数",
+      "expr": "isBase64('12345') === false",
+      "name_en": "Default mode rejects lengths not divisible by 4"
+    },
+    {
+      "name": "urlSafe 默认不要求 padding",
+      "expr": "isBase64('PDw_Pz8-Pg', { urlSafe: true }) === true",
+      "name_en": "urlSafe does not require padding by default"
+    },
+    {
+      "name": "urlSafe 字符集不含 + 与 /",
+      "expr": "isBase64('This+isa/bad+base64Url==', { urlSafe: true }) === false",
+      "name_en": "urlSafe alphabet excludes + and /"
+    },
+    {
+      "name": "urlSafe 与显式 padding 并用",
+      "expr": "isBase64('SGVsbG8-', { urlSafe: true, padding: true }) === true",
+      "name_en": "urlSafe with explicit padding"
+    },
+    {
+      "name": "空串视为合法",
+      "expr": "isBase64('') === true",
+      "name_en": "Empty string is valid"
+    }
   ],
   "hints": [
     "默认选项在 merge 的第二个参数里生成；注意 padding 的默认值在标准与 urlSafe 两种模式下并不相同。",
     "可对照 urlSafe 用例：10 位无填充的 urlSafe 串不应被长度检查拒绝。",
     "显式 { padding: true } 或 { padding: false } 应始终覆盖默认值，merge 只补未定义的键。"
   ],
-  "explanation": "参考实现用 merge(options, { urlSafe: false, padding: !options?.urlSafe }) 生成默认值：标准 Base64 默认 padding 为 true，urlSafe 默认为 false；显式传入的 padding 因键已存在而不被覆盖。本缺陷把默认值统一写成 padding: true，导致 urlSafe 模式下无填充（长度非 4 倍数）的合法串被长度检查误拒。常见坑：把默认值统一成 true 或 false；把默认值判断挪进 urlSafe 分支导致标准模式行为漂移；忽略空串提前返回的约定与 assertString 的类型守卫。"
+  "explanation": "参考实现用 merge(options, { urlSafe: false, padding: !options?.urlSafe }) 生成默认值：标准 Base64 默认 padding 为 true，urlSafe 默认为 false；显式传入的 padding 因键已存在而不被覆盖。本缺陷把默认值统一写成 padding: true，导致 urlSafe 模式下无填充（长度非 4 倍数）的合法串被长度检查误拒。常见坑：把默认值统一成 true 或 false；把默认值判断挪进 urlSafe 分支导致标准模式行为漂移；忽略空串提前返回的约定与 assertString 的类型守卫。",
+  "title_en": "Fix isBase64's URL-safe default behaviour",
+  "description_en": "Context: isBase64 validates standard or URL-safe Base64. Contract: without options it uses standard Base64 and requires padding by default (length must be a multiple of 4); with urlSafe: true it does not require padding by default, and the alphabet additionally allows - and _ (so + and / are invalid in that mode); an explicit padding value always overrides the default; the empty string is valid; non-string input throws TypeError. User report: isBase64('PDw_Pz8-Pg', { urlSafe: true }) returns false, but the contract says it is valid; the default options handling is suspected. Task: locate and minimally fix the defect without breaking the standard default-padding behaviour or the explicit padding override. Acceptance: all tests pass.",
+  "hints_en": [
+    "The defaults are produced in the second argument to merge; note that the default padding differs between standard and urlSafe modes.",
+    "Compare with the urlSafe case: a 10-character unpadded urlSafe string must not be rejected by the length check.",
+    "An explicit { padding: true } or { padding: false } must always override the default; merge only fills keys whose value is undefined."
+  ],
+  "explanation_en": "The reference uses merge(options, { urlSafe: false, padding: !options?.urlSafe }): standard Base64 defaults padding to true, urlSafe defaults it to false; an explicit padding key is already present, so merge does not overwrite it. The defect hard-codes padding: true, so a valid unpadded urlSafe string (length not a multiple of 4) is rejected by the length check. Common traps: making the default always true or always false; moving the default into the urlSafe branch so standard mode drifts; ignoring the early return for the empty string and the assertString type guard."
 }
