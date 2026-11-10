@@ -1,0 +1,56 @@
+[
+  {
+    "id": "c02-luhn-check",
+    "title": "补全 Luhn 校验和核心算法",
+    "type": "fillin",
+    "difficulty": "medium"
+  },
+  {
+    "id": "c04-is-date",
+    "title": "修复 isDate 误拒默认选项下的合法日期",
+    "type": "bugfix",
+    "difficulty": "medium"
+  },
+  {
+    "id": "c07-is-base64",
+    "title": "修复 isBase64 URL-safe 模式的默认行为",
+    "type": "bugfix",
+    "difficulty": "easy"
+  },
+  {
+    "id": "c09-is-strong-password",
+    "title": "为 isStrongPassword 新增 minUniqueChars 选项",
+    "type": "feature",
+    "difficulty": "easy"
+  },
+  {
+    "id": "c03-is-isbn",
+    "title": "补全 isISBN 的 ISBN-10/13 校验和算法",
+    "type": "fillin",
+    "difficulty": "medium"
+  },
+  {
+    "id": "c10-is-credit-card",
+    "title": "为 isCreditCard 新增 mir 发卡机构",
+    "type": "feature",
+    "difficulty": "medium"
+  },
+  {
+    "id": "c11-is-json",
+    "title": "修复 isJSON 默认模式误收 null 的缺陷",
+    "type": "bugfix",
+    "difficulty": "medium"
+  },
+  {
+    "id": "c12-is-mongo-id",
+    "title": "补全 isMongoId 的核心判断",
+    "type": "fillin",
+    "difficulty": "easy"
+  },
+  {
+    "id": "capstone-signup",
+    "title": "毕业项目：注册表单校验器",
+    "type": "project",
+    "difficulty": "hard"
+  }
+]
