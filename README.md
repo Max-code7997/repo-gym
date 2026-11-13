@@ -4,7 +4,7 @@
 
 Live demo: https://max-code7997.github.io/repo-gym/
 
-![Repo Gym course](docs/course-lesson.png)
+![Repo Gym command palette](docs/command-palette.png)
 
 ## The course
 
@@ -21,6 +21,8 @@ A five-chapter mini-course built around real code from [validator.js](https://gi
 ## How it works
 
 - The site is a static page (`index.html` + `data.js`), no backend, no CDN, no external fonts.
+- Press **⌘K / Ctrl+K** (or **/**) for a command palette that jumps to any lesson, exercise, note, new chat or language switch.
+- Right-click a message (or long-press on touch) for **Copy / Select text / Edit** (there is no Share). The tutor menu keeps recent conversations with single and multi-select delete.
 - Your code and the tests run inside a `sandbox="allow-scripts"` iframe.
 - Progress, best completion state, XP, lesson reads and editor code are stored in `localStorage`.
 - XP: lesson 15, easy 10, medium 20, hard 30, capstone 50. Five levels, Newcomer → Maintainer.
@@ -32,11 +34,13 @@ A five-chapter mini-course built around real code from [validator.js](https://gi
 
 Click **ASK** in the bottom-right corner. It answers from the lessons, exercises, hints, your last test run and your own notes; it never calls an API. Open **NOTES** to paste or import material — it is chunked and indexed locally with BM25, and answers quote the source. Use **Listen** on an answer to read it aloud. The **MIC** button uses the browser's speech recognition where available (this may use the browser's online service; the rest of the tutor is offline).
 
-Move the pointer near a message to reveal **Copy / Select text / Edit** (there is no Share). The **☰** button opens the tutor menu: Course, Notes, New chat and recent questions.
+Right-click a message (or long-press on touch) to reveal **Copy / Select text / Edit** (there is no Share). The **☰** button opens the tutor menu: Course, Notes, New chat and recent conversations.
 
 ![Tutor message menu](docs/tutor-menu.png)
 
 ![Offline tutor with local notes](docs/tutor-rag.png)
+
+![Recent conversation multi-select](docs/history-multi-select.png)
 
 ## How it was built
 
@@ -47,7 +51,7 @@ Built with **AutoClaw** (GLM-5.3) in four passes:
 3. **Independent auditor** — reference must pass every test; starter must fail at least one; each solution gets three semantic mutations that the tests must catch.
 4. **Site builder** — the static app with an in-browser test runner.
 
-AutoClaw generated the exercise packs and the site. The course structure, lesson notes, capstone brief and the final test fixes were written and verified by the author. The English edition is a human translation of the Chinese content.
+AutoClaw generated the exercise packs and the site. The course structure, lesson notes, capstone brief and the final test fixes were written and verified by the author. The English edition is a human translation of the Chinese content. The final UI polish — command palette, conversation history and Windows 11 cursors — was added by the author.
 
 The audit is in [audit.md](audit.md): **26/27 mutants killed; 1 mutant proven equivalent.** The equivalent mutant is documented in the matrix: in 2026, the two branches it changes map to 1926 and 2026, both non-leap years, so `isDate` cannot distinguish them.
 
@@ -78,6 +82,8 @@ Open <http://localhost:8000>.
 ## Attribution
 
 Exercise content is derived from validator.js (MIT, commit `9ff3424`) and used for teaching only. Visual effects are adapted from ReactBits' SpotlightCard and DecryptedText and reimplemented in vanilla CSS/JS.
+
+Cursor: Windows 11 Light Theme cursor set by GeorgiosNexus, released to the public domain (credits to Jepri Creations / rosea92 for the concept).
 
 ## Licence
 
